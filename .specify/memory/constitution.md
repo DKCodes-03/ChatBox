@@ -1,14 +1,23 @@
 <!--
 Sync Impact Report
-Version change: unratified template → 1.0.0 (initial adoption)
+Version change: 1.0.0 → 2.0.0
+Rationale: replaces mandatory human source authorization with rule-based source eligibility
+for the initial version, an incompatible redefinition of information-authority governance.
 Modified principles:
-- Placeholder principle 1 → I. Grounded Answers
-- Placeholder principle 2 → II. Fail Safely
-- Placeholder principle 3 → III. Requirements Before Implementation
-Added sections: Information Authority; Requirements and Compliance Review; Governance
-Removed sections: unused placeholder principles 4 and 5
-Follow-up TODOs: none. Each relevant feature must define its approved information sources
-and resolve material ambiguities with a human before implementation.
+- I. Grounded Answers: approved information now explicitly includes rule-qualified sources.
+- II. Fail Safely: unchanged; referrals remain subject to the same source eligibility rules.
+- III. Requirements Before Implementation: unchanged.
+Modified sections: Information Authority; Requirements and Compliance Review
+Added sections: none
+Removed sections: none
+Follow-up alignment required (not modified by this constitution command):
+- specs/001-pnw-student-chatbot/spec.md: supersede per-document office approval, renewal,
+  term-specific sign-off and human conflict-resolution gates with documented eligibility,
+  applicability and freshness rules; preserve fail-safe behavior for unresolved conflicts.
+- specs/001-pnw-student-chatbot/plan.md, research.md, data-model.md, contracts/ and quickstart.md:
+  align approval workflows, source states, release gates and validation with the revised spec.
+- Revalidate specs/001-pnw-student-chatbot/checklists/requirements.md after spec alignment.
+Deferred placeholders: none.
 -->
 # ChatBox Constitution
 
@@ -19,7 +28,10 @@ and resolve material ambiguities with a human before implementation.
 All answers about university policies, rules, deadlines, and procedures MUST be grounded in
 approved university information. The system MUST NOT present unsupported information as
 official university policy. Claims presented as official MUST be traceable to approved
-information that supports them. This protects users from acting on invented university guidance.
+information that supports them. For the initial version, approved information means information
+from sources meeting the documented eligibility rules in Information Authority; it does not
+require explicit human review or sign-off of each ingested document. This protects users from
+acting on invented university guidance while allowing automated source qualification.
 
 ### II. Fail Safely
 
@@ -39,18 +51,31 @@ implementation MUST wait for a documented human decision.
 
 ## Information Authority
 
-Requirements for features that answer university questions MUST identify the approved
-university information they may use and how that approval is established. If source approval
-or applicability is unclear, a human MUST resolve it before the source is treated as authority.
-Insufficient, conflicting, or potentially outdated information MUST trigger the fail-safe rule
-whenever a reliable answer cannot be established.
+Requirements for features that answer university questions MUST define testable rules for
+eligible official university sources, including source provenance, scope and applicability,
+content completeness, and freshness. The initial version MUST allow documents that satisfy
+these rules to be ingested and used without explicit human document review, office sign-off,
+or per-document approval or renewal. Document and deadline applicability MUST be established
+by the documented rules rather than mandatory human sign-off.
+
+The system MUST record source provenance and the evidence used to determine eligibility.
+Ingestion alone MUST NOT establish authority: a document must satisfy the eligibility rules
+before it supports an official claim. When eligibility or applicability cannot be established,
+the system MUST withhold the affected claim and follow the fail-safe rule. Insufficient,
+unresolved conflicting, or potentially outdated information MUST trigger the same behavior
+whenever a reliable answer cannot be established; human review is not required to return a
+safe limitation or a supported referral.
+
+Important ambiguities in the eligibility requirements themselves remain subject to Principle
+III. Removing document review does not authorize AI to silently invent source-selection rules.
 
 ## Requirements and Compliance Review
 
 Before implementation, each feature specification MUST include acceptance criteria that can
 be checked through tests or review. For university-answering features, those criteria MUST
 cover supported answers, insufficient reliable information, and prevention of unsupported
-claims presented as official policy.
+claims presented as official policy. Source qualification checks MAY be automated; acceptance
+MUST NOT depend on explicit human review of each ingested document in the initial version.
 
 Reviewers MUST check requirements for unresolved important ambiguities before implementation.
 Before a change is accepted, review MUST verify compliance with all applicable principles and
@@ -71,4 +96,4 @@ redefinitions, MINOR for new principles or materially expanded guidance, and PAT
 clarifications or wording corrections that do not change obligations. Compliance MUST be
 reviewed during requirements review and before changes are accepted.
 
-**Version**: 1.0.0 | **Ratified**: 2026-09-14 | **Last Amended**: 2026-09-14
+**Version**: 2.0.0 | **Ratified**: 2026-09-14 | **Last Amended**: 2026-09-16

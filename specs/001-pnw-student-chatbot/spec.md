@@ -1,6 +1,6 @@
 # Feature Specification: PNW Student Information Chatbot
 
-**Feature Branch**: `main` (existing branch; no branch hook configured)
+**Feature Branch**: `001-pnw-student-chatbot`
 
 **Created**: 2026-09-14
 
@@ -11,6 +11,9 @@ Dean of Students staff and students and an initial review of university informat
 Students need direct, reliable answers without searching through many webpages; staff need
 fewer repetitive inquiries. Incorrect policy information is unacceptable.
 
+Aligned with constitution v2.0.0: “eligible” information in this specification is the
+constitution's rule-qualified “approved university information,” without document sign-off.
+
 ## Clarifications
 
 ### Session 2026-09-16
@@ -19,13 +22,10 @@ fewer repetitive inquiries. Incorrect policy information is unacceptable.
   limited to general information; personal record access, transactions, and individual degree
   planning are excluded.
 
-- Q: Who should approve the chatbot’s university sources and resolve conflicting information?
-  → A: The Dean of Students coordinates approval; responsible university offices approve
-  information within their areas and resolve conflicts.
-
-- Q: What rule should determine when approved university information needs review before the
-  chatbot can keep using it? → A: Responsible offices set a review/expiry date for each source;
-  deadlines require term-specific approval. Expired sources are withheld until approval is renewed.
+- Source-governance amendment: Constitution v2.0.0 and the user's alignment request supersede
+  the earlier office-approval and owner-set expiry answers. The initial version automatically
+  qualifies ingested documents under documented source rules; no per-document human review,
+  office sign-off, renewal or term-specific sign-off is required. Grounding and safe failure remain.
 
 - Q: May the chatbot retain students’ questions and answers after a conversation ends?
   → A: Conversation content is retained only during the active session and deleted when it
@@ -45,18 +45,18 @@ answer with official supporting sources so I can understand what to do next.
 
 **Why this priority**: Direct, grounded answers address the primary student and sponsor need.
 
-**Independent Test**: Provide approved information for one supported procedure, ask the question,
+**Independent Test**: Provide eligible information for one supported procedure, ask the question,
 and compare the explanation, steps, qualifications, and source links with that information.
 
 **Acceptance Scenarios**:
 
-1. **Given** approved applicable sources contain a complete procedure, **When** a student asks
+1. **Given** eligible applicable sources contain a complete procedure, **When** a student asks
    how to complete it, **Then** the chatbot gives a plain-language answer and ordered steps,
    including required approvals and deadlines where supported, with links to supporting sources.
-2. **Given** the answer spans an approved main page, linked page, and PDF, **When** the student
+2. **Given** the answer spans an eligible main page, linked page, and PDF, **When** the student
    asks the question, **Then** the chatbot combines supported information into one explanation
    and identifies the supporting documents instead of returning only a list of links.
-3. **Given** approved information explicitly establishes whether a program exists for a stated
+3. **Given** eligible information explicitly establishes whether a program exists for a stated
    catalog context, **When** asked about that program, **Then** the chatbot answers directly;
    absence from incomplete search results alone does not justify answering that it does not exist.
 4. **Given** a question asks for several facts and only some are supported, **When** answered,
@@ -70,17 +70,17 @@ appropriate office when known so I do not act on invented guidance.
 
 **Why this priority**: Safe failure is a constitutional requirement and essential to trust.
 
-**Independent Test**: Ask questions using missing, unapproved, expired, and conflicting source
+**Independent Test**: Ask questions using missing, ineligible, expired, and conflicting source
 fixtures and verify that no unsupported official answer or contact is supplied.
 
 **Acceptance Scenarios**:
 
 1. **Given** no sufficient reliable source exists, **When** a student asks a question, **Then**
    the chatbot clearly says it cannot provide a reliable answer and does not guess.
-2. **Given** equally applicable approved sources disagree and no approved resolution exists,
+2. **Given** equally applicable eligible sources disagree and no source-backed supersession resolves the conflict,
    **When** asked about the disputed fact, **Then** the chatbot explains the uncertainty,
    withholds a definitive answer, and links to the conflicting sources when available.
-3. **Given** an approved source identifies the responsible office, **When** the chatbot cannot
+3. **Given** an eligible source identifies the responsible office, **When** the chatbot cannot
    answer reliably, **Then** it provides that office and the supported contact route; if no
    verified referral exists, it says so rather than inventing one.
 4. **Given** a registration error requires personal records or staff action, **When** the student
@@ -104,7 +104,7 @@ questions and answer selection without requiring personal student records.
    procedure, **Then** the chatbot asks for campus before giving the affected answer.
 2. **Given** a deadline depends on term, year, session, or course duration, **When** required
    context is missing, **Then** the chatbot asks for it and does not silently choose a term.
-3. **Given** an approved schedule table contains distinct add/drop dates and refund percentages,
+3. **Given** an eligible schedule table contains distinct add/drop dates and refund percentages,
    **When** a student supplies context, **Then** the answer preserves the correct row, headings,
    conditions, and date-to-percentage relationships and labels the applicable period.
 4. **Given** a student corrects the campus or term in a follow-up, **When** answering again,
@@ -120,15 +120,15 @@ procedures so I can prepare for a conversation with my advisor.
 **Why this priority**: Students described difficulty with program discovery, prerequisites,
 plans of study, and graduation procedures. These topics are included in the first release.
 
-**Independent Test**: Use an approved catalog and procedure fixture to ask about prerequisites
+**Independent Test**: Use an eligible catalog and procedure fixture to ask about prerequisites
 or a plan of study; compare the explanation with source conditions and scope.
 
 **Acceptance Scenarios**:
 
-1. **Given** approved prerequisite information is spread across course entries, **When** asked
+1. **Given** eligible prerequisite information is spread across course entries, **When** asked
    for prerequisites, **Then** the chatbot summarizes the published relationships and preserves
    alternatives, minimum grades, concurrent enrollment rules, and catalog applicability.
-2. **Given** approved instructions describe plan-of-study or graduation submission, **When**
+2. **Given** eligible instructions describe plan-of-study or graduation submission, **When**
    asked how to proceed, **Then** the chatbot explains supported steps and approvals without
    deciding the student's personal course eligibility or graduation status.
 3. **Given** a catalog describes typical offerings but not current availability, **When** asked
@@ -137,25 +137,26 @@ or a plan of study; compare the explanation with source conditions and scope.
 
 ### User Story 5 - Keep answer sources accountable (Priority: P1)
 
-As a university content owner, I want only approved, applicable information used in answers
-so students receive guidance whose authority and review status can be checked.
+As a student, I want answers based on traceable, applicable university information so I can
+check their source without depending on an unpublished document-review process.
 
-**Why this priority**: Grounding requires an explicit source authority and lifecycle.
+**Why this priority**: Grounding requires reproducible source qualification.
 
-**Independent Test**: Review source records and change one from approved to withdrawn; verify
-that subsequent answers do not rely on it as authority. No particular administrative interface
-is required by this story.
+**Independent Test**: Ingest a qualifying source without a reviewer or approval record and verify
+that it becomes usable; fail an eligibility check and verify that it cannot support an answer.
 
 **Acceptance Scenarios**:
 
-1. **Given** a candidate source, **When** approval by the responsible university office is
-   recorded through coordination with the Dean of Students,
-   **Then** its approved scope, version, owner, and review validity are available for review.
-2. **Given** a source is withdrawn, past its recorded approval expiry, or changed without renewed approval,
-   **When** a new answer is requested, **Then** the affected information is not used as approved
-   authority; other valid evidence may support the answer or the chatbot fails safely.
-3. **Given** linked material is needed to complete an answer, **When** that material has not
-   been approved, **Then** approval of the parent page does not automatically authorize it.
+1. **Given** an official source passes the documented rules, **When** ingestion completes,
+   **Then** its version, provenance, applicability and automated check results are recorded and
+   it becomes usable without human document review.
+2. **Given** a source is withdrawn, stale, changed but not requalified, or fails a required check,
+   **When** an answer is requested, **Then** affected evidence is withheld until checks pass again.
+3. **Given** an eligible page links to another document, **When** that document is ingested,
+   **Then** it independently passes eligibility checks before supporting any claim.
+4. **Given** conflicting applicable sources lack a documented supersession relationship,
+   **When** asked about the disputed fact, **Then** the chatbot withholds a definitive answer
+   without requiring a human to authorize that safe limitation.
 
 ### Edge Cases
 
@@ -164,7 +165,7 @@ is required by this story.
 - A page contains navigation, sharing controls, duplicate content, or instructions directed at
   the chatbot: these are not evidence of university policy and cannot override answer rules.
 - A source applies only to concurrent enrollment, graduate students, or an older catalog:
-  do not generalize it to all PNW students or treat it as current without applicable approval.
+  do not generalize it to all PNW students or treat it as current without established applicability.
 - A question refers to another Purdue institution: clarify the institution rather than silently
   applying its information to PNW.
 - A prerequisite chain is incomplete or circular: identify the gap and do not claim completeness.
@@ -190,47 +191,48 @@ is required by this story.
   language, with ordered steps for procedures and without omitting material exceptions or
   conditions. Acceptance: Story 1 scenarios 1–2 and Story 4.
 - **FR-003**: Every university policy, rule, deadline, or procedural claim MUST be supported by
-  approved applicable evidence and accompanied by a source title and link. Sources MUST be
+  eligible applicable evidence and accompanied by a source title and link. Sources MUST be
   associated with the claims they support; section or page references MUST be included where
   available. Acceptance: compare every factual claim in Stories 1, 3, and 4 with its evidence.
 - **FR-004**: The chatbot MUST clearly decline unsupported answers, distinguish supported parts
   from unknown parts, and never infer nonexistence solely from missing search results.
   Acceptance: Story 1 scenarios 3–4 and Story 2 scenarios 1–2.
 - **FR-005**: Referrals MUST identify an appropriate office and contact route only when supported
-  by approved information. Acceptance: Story 2 scenarios 3–4, including missing-contact tests.
+  by eligible information. Acceptance: Story 2 scenarios 3–4, including missing-contact tests.
 - **FR-006**: The chatbot MUST ask for missing campus, term/year, session, program, student level,
   or catalog context when that context changes the answer; answers MUST state applicable
   context. Acceptance: Story 3 and the population-specific edge case.
 - **FR-007**: Dates MUST retain their associated event, term, session, conditions, and any stated
   time zone. Past dates MUST be labeled; unknown date applicability MUST trigger clarification
   or safe failure. Acceptance: Story 3 scenarios 2–5.
-- **FR-008**: Answers MUST preserve meaning across approved linked pages, PDFs, tables, and
+- **FR-008**: Answers MUST preserve meaning across eligible linked pages, PDFs, tables, and
   expandable content, including prerequisite relationships and table headings. Navigation and
   duplicate text MUST NOT be treated as additional policy evidence. Acceptance: Story 1
   scenario 2, Story 3 scenario 3, Story 4 scenario 1, and source-access edge cases.
 - **FR-009**: The chatbot MUST distinguish published general guidance from personal eligibility,
   account status, and staff decisions. It MUST NOT claim to execute transactions or access
   student records. Acceptance: Story 2 scenario 4, Story 4 scenarios 2–3, and transaction tests.
-- **FR-010**: Each usable source MUST have a recorded identity/link, version or content reference,
-  approving owner, approved audience/topic scope, applicable period where relevant, approval
-  status, and review validity. Withdrawn or expired sources MUST NOT support subsequent
-  answers. The Dean of Students MUST coordinate source approval. Responsible university
-  offices MUST approve information within their areas and resolve conflicts; unresolved
-  conflicts MUST continue to trigger safe failure. Acceptance: Story 5; approval records
-  identify the responsible office, and a conflicting claim remains withheld until the
-  responsible offices record a resolution coordinated by the Dean of Students.
-- **FR-011**: The responsible university office MUST set a review/expiry date for each approved
-  source. Approval MUST expire at the recorded expiry unless the office renews it; expired
-  sources MUST be withheld from subsequent answers until renewal is recorded. Deadlines MUST
-  have explicit approval for the applicable term. Missing expiry dates, missing term-specific
-  deadline approval, unresolved conflicts, and unconfirmed applicability MUST cause safe
-  failure for affected claims. Acceptance: Stories 2, 3, and 5, including checks immediately
-  before and at expiry, after renewal, and with absent or mismatched term approval.
+- **FR-010**: Each usable document MUST independently pass documented automated source rules:
+  official provenance within configured PNW source boundaries, successful complete extraction
+  of the supporting content, identifiable audience/topic scope, and applicability to the claim.
+  The system MUST record URL, version, rule version, check results and supporting metadata.
+  No human document review, office sign-off or per-document approval is required. Links and
+  ingestion alone MUST NOT confer eligibility. Acceptance: Story 5, including successful
+  ingestion with no approver record and rejection of sources outside configured boundaries.
+- **FR-011**: Sources MUST be rechecked daily and withheld when the last successful qualification
+  is 24 hours old, a check fails, or a material change is detected pending requalification.
+  A successful fetch alone MUST NOT establish currency: published effective periods, catalog
+  versions, terms and sessions MUST support the requested context. Deadlines MUST have explicit
+  source-backed term/session applicability, without human sign-off. Expired applicability,
+  incomplete extraction and unresolved conflicts MUST cause safe failure for affected claims.
+  Automatic conflict resolution MUST require explicit source-backed supersession; retrieval rank
+  or a later fetch time alone MUST NOT resolve a conflict. Acceptance: Stories 2, 3 and 5,
+  including the 24-hour boundary, failed refresh, requalification and term mismatch.
 - **FR-012**: The first release MUST support general information on add/drop,
   registration and general error guidance, academic standing, grade appeals, financial aid
   deadlines, office contacts, parking payment/appeal guidance, programs, prerequisites, plans
   of study, graduation, graduate admissions, accessibility services, academic integrity,
-  classroom behavior, and information-services policies. Approval is required for answer
+  classroom behavior, and information-services policies. Source eligibility is required for answer
   evidence in every topic. Acceptance: each listed topic has a supported-answer and
   unsupported-answer case; topics outside this list receive a scope limitation.
 - **FR-013**: Before implementation, human decisions on scope, source authority, and freshness
@@ -256,15 +258,15 @@ is required by this story.
 - **Student question and context**: Requested topic, explicit campus, term/session, program,
   student level, catalog context, and follow-up corrections; not a personal student record.
   This conversation content exists only during the active session and is deleted when it ends.
-- **University source**: Candidate or approved document with location, content/version reference,
-  responsible approving office, approval status, applicability, review/expiry date,
-  renewal record, and term-specific deadline approval where relevant.
+- **University source**: Candidate or eligible document with URL, immutable content version,
+  provenance, scope, effective period, last successful qualification, next required check,
+  rule version and per-check results. No approver or sign-off record is required.
 - **Supporting evidence**: Specific passage, table relationship, or document section supporting
   a claim; linked to its source and applicability.
 - **Answer**: Direct explanation, supported claims, source references, context, limitations,
   and optional verified next steps or referral.
-- **Office referral**: Office name, responsibilities, contact route, and approving source.
-- **Human decision**: Scope, authority, freshness, or conflict resolution with decision maker,
+- **Office referral**: Office name, responsibilities, contact route, and supporting eligible source.
+- **Human decision**: Requirements-level scope, authority or freshness decisions with decision maker,
   decision date, rationale, and affected requirements or sources.
 
 ## Success Criteria *(mandatory)*
@@ -276,7 +278,7 @@ set of at least 60 questions with at least two answerable cases per selected top
 least 20 combined missing-evidence, conflict, outdated-source, wrong-context, and personal-case
 questions. Reviewers establish expected answers and permitted sources before evaluation.
 
-- **SC-001**: 100% of official claims in evaluated answers have supporting approved evidence
+- **SC-001**: 100% of official claims in evaluated answers have supporting eligible evidence
   applicable to the question; zero fabricated policies, dates, requirements, or contacts occur.
 - **SC-002**: 100% of evaluated insufficient-evidence or unresolved-conflict cases clearly
   withhold the unsupported conclusion; every referral provided has verified support.
@@ -287,10 +289,10 @@ questions. Reviewers establish expected answers and permitted sources before eva
 - **SC-005**: In a usability evaluation with at least 10 students completing three representative
   tasks each, at least 80% of tasks reach a correct answer or appropriate verified referral
   within two minutes, including clarification time; at least 80% of students rate clarity
-  at least 4 out of 5. At least two tasks per student MUST be answerable from approved sources.
+  at least 4 out of 5. At least two tasks per student MUST be answerable from eligible sources.
 - **SC-006**: At least 95% of evaluation questions receive an answer, clarification request, or
   explicit limitation within 10 seconds after submission, excluding student response time.
-- **SC-007**: 100% of withdrawal, expiry, and unapproved-source evaluation cases prevent use of
+- **SC-007**: 100% of withdrawal, expiry, and ineligible-source evaluation cases prevent use of
   the affected source as authority in subsequent answers.
 
 - **SC-008**: In 100% of session-end retention checks, conversation content cannot be restored
@@ -302,7 +304,7 @@ questions. Reviewers establish expected answers and permitted sources before eva
 ## Assumptions
 
 - This is an informational chatbot for PNW students. Sponsor: Dean of Students Office; Jane is
-  the interviewed student service coordinator, not an assumed source approver.
+  the interviewed student service coordinator, not a required document approver.
 - General guidance across all topics listed in FR-012 is the confirmed first-release boundary.
   Student record integration, transactions, individual scheduling or degree audits, live room
   changes, prerequisite visualizations, and replacement of advisor decisions are outside this
@@ -311,13 +313,15 @@ questions. Reviewers establish expected answers and permitted sources before eva
   integration is required. Conversation content MUST NOT be saved beyond the active session;
   only aggregate usage and performance statistics without message text or student identifiers
   may be retained. Changes to this retention boundary require human-reviewed requirements.
-- Corpus review observations are discovery evidence, not proof that a source is approved,
-  complete, current, or applicable to all students. Linked documents need their own approval.
-- Availability of university content owners, approved source material, verified office contacts,
-  and human-reviewed evaluation cases are dependencies. The Dean of Students coordinates source
-  approval with responsible university offices. Each office sets source review/expiry dates
-  and explicitly approves deadlines for the applicable term. No source is approved merely
-  by appearing in the list below.
+- Corpus review observations do not establish source eligibility, completeness, currency or
+  audience. Every linked document must independently qualify. Initial source boundaries are
+  the supplied corpus URLs and bounded public links on `www.pnw.edu`, `pnw.edu` and
+  `catalog.pnw.edu`; a host match alone is insufficient. External hosts remain ineligible
+  unless the requirements explicitly expand the source boundaries.
+- Available official documents, verified office contacts and human-reviewed evaluation cases
+  are dependencies. Human evaluation of product behavior is distinct from reviewing each
+  ingested document and remains part of acceptance. Daily qualification carries forward the
+  plan's existing daily check cadence; it cannot make old policy current merely by fetching it.
 - Speed and usability targets are proposed defaults. Reducing repetitive staff questions is a
   business objective; no percentage reduction is claimed without a staff inquiry baseline.
 - Implementation choices for collecting and representing information are deferred to planning.
@@ -327,10 +331,10 @@ questions. Reviewers establish expected answers and permitted sources before eva
 
 The interview and corpus review supplied by the user are the primary requirements evidence.
 The following links retain the candidate source inventory. Web access was attempted on
-2026-09-14; access success does not constitute approval or currency verification. Both catalog
+2026-09-14; access success does not establish eligibility or currency. Both catalog
 links could not be retrieved during this check; their structural observations remain user-reported.
 
-| Candidate source | Required review focus |
+| Candidate source | Qualification focus |
 | --- | --- |
 | [Parking regulations](https://www.pnw.edu/getting-to-pnw/parking-and-fees/regulations-and-enforcement/) | Complete procedures across linked resources; campus applicability |
 | [Catalog program](https://catalog.pnw.edu/preview_program.php?catoid=5&poid=1338&returnto=271) | Catalog version, program scope, prerequisites, campus and offering distinctions |

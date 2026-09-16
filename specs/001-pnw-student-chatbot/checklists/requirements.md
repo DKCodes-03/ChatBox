@@ -31,16 +31,14 @@
 
 ## Notes
 
-Validation pass 1: 12 of 16 items pass; four await human decisions.
+Revalidated against constitution v2.0.0: 16/16 specification-quality items pass.
 
-- FR-012: "The first-release topic boundary MUST be explicit." Q1 is unresolved, so the
-  topic boundary and topic-specific acceptance cases cannot be finalized.
-- FR-010: "Who approves sources and resolves conflicts" remains Q2; the authorization rule
-  cannot yet be evaluated against a named responsible role.
-- FR-011: "A documented freshness rule MUST determine when source approval expires" remains
-  Q3; precise expiry acceptance cases depend on the selected rule.
-- Scenario structures and measurable outcome definitions are complete. Checked outcome items
-  concern specification quality, not evidence that an unbuilt product has passed evaluation.
-- Resolve Q1–Q3 in this conversation or through `$speckit-clarify`, update the specification,
-  and rerun this checklist before `$speckit-plan` or implementation.
-- No extension configuration exists; before/after specification hooks were skipped.
+- FR-010 and Story 5 require automatic qualification without human document review or office
+  sign-off. Each document independently meets provenance, completeness and applicability rules.
+- FR-011 defines daily checks, a 24-hour freshness bound, term/session applicability and safe
+  failure for incomplete, unavailable or conflicting information. Source-backed supersession
+  is required for automatic conflict resolution.
+- Scope and conversation-retention decisions remain intact. Requirements review and product
+  evaluation are distinct from per-document review and remain applicable.
+- Plan, research, data model, interface contracts and validation guide use the same qualification
+  lifecycle. These checks establish documentation consistency, not implementation test results.
