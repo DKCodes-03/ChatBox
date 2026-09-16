@@ -1,6 +1,7 @@
 # Research Decisions
 
-Research date: 2026-09-16. User-selected stack: FastAPI, React, PostgreSQL/pgvector, Docker.
+Research date: 2026-09-16. User-selected stack: FastAPI, React, PostgreSQL/pgvector, Docker,
+and Google Gemini API.
 Decisions below resolve design unknowns; performance and answer quality are release gates,
 not results claimed for software that has not been built.
 
@@ -58,24 +59,37 @@ updates. A final unlocked query leaves a race between checking and publishing.
 Sources: [PostgreSQL isolation](https://www.postgresql.org/docs/current/transaction-iso.html),
 [date/time types](https://www.postgresql.org/docs/current/datatype-datetime.html).
 
-## 4. Local generation and embeddings
+## 4. Hosted generation, local fallback and embeddings
 
-**Decision:** Start with llama.cpp and Qwen/Qwen3-4B-GGUF Q4_K_M in non-thinking mode, bounded
-output of 512 tokens, and local Sentence Transformers all-MiniLM-L6-v2 embeddings. Store
-normalized 384-dimensional corpus vectors. Embedding retrieval units stay within 220 model
-wordpieces including headings; retain complete parent passages, table rows and footnotes for
-answer evidence. Oversized tables are split by semantic rows, never by arbitrary characters.
+**Decision:** Use Google Gemini through the `google-genai` Python SDK with the stable
+`gemini-2.5-flash-lite` model as the initial hosted LLM integration. Use stateless generate-content
+requests with a bounded 512-token output, structured response schema, no provider conversation
+IDs, and no optional caching. Keep llama.cpp with Qwen/Qwen3-4B-GGUF Q4_K_M as a local fallback.
+Use local Sentence Transformers all-MiniLM-L6-v2 embeddings. Store normalized 384-dimensional
+corpus vectors. Embedding retrieval units stay within 220 model wordpieces including headings;
+retain complete parent passages, table rows and footnotes for answer evidence. Oversized tables
+are split by semantic rows, never by arbitrary characters.
 
-**Rationale:** Local inference permits direct control of prompt retention. MiniLM's documented
-256-wordpiece input limit requires explicit segmentation. The small generator is an evaluation
-baseline; fluent output is not proof of grounding. Validate claims and citations, abstain on
-unsupported content, and use human-reviewed cases to measure residual errors.
+**Rationale:** Gemini 2.5 Flash-Lite is documented as a fast, budget-oriented stable model and
+supports structured outputs. The free/unpaid tier has variable project quotas and Google states
+that unpaid-service content may be used to improve products; therefore it is a development
+option, not an automatic production privacy approval. Paid services or Vertex AI require a
+separate data-handling check, and local inference remains available when external processing is
+not acceptable. MiniLM's documented 256-wordpiece input limit requires explicit segmentation.
+The generator is an evaluation baseline; fluent output is not proof of grounding. Validate
+claims and citations, abstain on unsupported content, and use human-reviewed cases to measure
+residual errors.
 
-**Alternatives considered:** Hosted inference requires a separately approved retention contract.
-Larger local models are a fallback if quality gates fail; model replacement requires rerunning
-quality, resource, deletion and latency checks. No vendor-specific cloud dependency is required.
+**Alternatives considered:** Local-only generation maximizes control but requires model resources.
+Gemini free tier reduces cost but cannot be assumed to satisfy the no-provider-retention gate.
+Paid Gemini/Vertex AI can address data terms but adds billing and account setup. Larger local
+models are a fallback if quality gates fail; any model replacement requires rerunning quality,
+resource, deletion and latency checks.
 
-Sources: [Qwen model card](https://huggingface.co/Qwen/Qwen3-4B-GGUF),
+Sources: [Gemini models](https://ai.google.dev/gemini-api/docs/models),
+[Gemini rate limits](https://ai.google.dev/gemini-api/docs/rate-limits),
+[Gemini terms](https://ai.google.dev/gemini-api/terms),
+[Qwen model card](https://huggingface.co/Qwen/Qwen3-4B-GGUF),
 [MiniLM model card](https://huggingface.co/sentence-transformers/all-MiniLM-L6-v2),
 [Sentence Transformers encoding](https://www.sbert.net/docs/package_reference/sentence_transformer/model.html),
 [llama.cpp Docker](https://github.com/ggml-org/llama.cpp/blob/master/docs/docker.md).
@@ -124,11 +138,12 @@ or incomplete documents are quarantined, not routed into a mandatory manual appr
 
 ## 7. Docker and operational envelope
 
-**Decision:** Docker Compose services: web/proxy, API, PostgreSQL, local inference, scheduled
-one-shot ingest, and one-shot migrations. Models are read-only files; source/database volumes
-are persistent; chat scratch is memory-only. Disable host swap, core dumps and body/access logs
-on chat paths. Use per-service file-mounted secrets and separate database roles. Only the web
-port is public; internal database, inference and operator interfaces are inaccessible externally.
+**Decision:** Docker Compose services: web/proxy, API, PostgreSQL, Gemini adapter configuration,
+optional local inference, scheduled one-shot ingest, and one-shot migrations. Models are read-only
+files; source/database volumes are persistent; chat scratch is memory-only. Disable host swap,
+core dumps and body/access logs on chat paths. Use per-service file-mounted secrets and separate
+database roles. Only the web port is public; internal database, inference and operator interfaces
+are inaccessible externally.
 Use health checks and migration completion as startup dependencies, plus runtime timeouts.
 
 **Rationale:** Compose fits a single-host initial deployment. Startup readiness does not replace

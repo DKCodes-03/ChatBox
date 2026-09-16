@@ -52,8 +52,11 @@ limitations, but not used to assert the disputed conclusion. No raw HTML or untr
 
 Error envelope: `{error: {code, message, retryable}, server_time}` with fixed safe messages.
 Never return submitted text in validation errors or exception payloads. 429 includes Retry-After.
-A dependency timeout returns a safe limitation or 503, never a generated guess. No token streaming:
-validate the complete response and current source eligibility before any answer is exposed.
+A dependency timeout, Gemini quota response, invalid Gemini payload or provider data-policy
+failure returns a safe limitation or 503, never a generated guess. The provider adapter may
+select the configured local fallback only when that deployment option is enabled. No token
+streaming: validate the complete response and current source eligibility before any answer is
+exposed. Gemini API keys, provider request IDs and provider logs never appear in the response.
 
 ## Concurrency and limits
 

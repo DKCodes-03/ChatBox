@@ -9,8 +9,10 @@ Run commands from the repository root. Do not use real student conversations as 
 
 - Docker Engine and Compose v2; enough disk for PostgreSQL and pinned local model weights.
 - CPU profile for functional development; deployment GPU profile for performance qualification.
-- Model files and tokenizer at exact pinned revisions, with checksums recorded in the build
-  manifest. Provision Qwen3-4B-GGUF Q4_K_M and all-MiniLM-L6-v2 locally before offline runtime.
+- Gemini API key in a Docker secret, with the selected model identifier and quota settings
+  recorded. For the local fallback profile, model files and tokenizer at exact pinned revisions
+  with checksums recorded in the build manifest; provision Qwen3-4B-GGUF Q4_K_M and
+  all-MiniLM-L6-v2 locally before offline runtime.
 - Deployment secrets files for database runtime, migration and governance roles. An implementation
   `.env.example` documents paths and nonsecret settings; no credentials in images or tracked files.
 - Synthetic HTML, table, PDF, linked-page, catalog and conflict fixtures with expected automated

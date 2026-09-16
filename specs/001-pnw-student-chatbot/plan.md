@@ -3,14 +3,15 @@
 **Branch**: `001-pnw-student-chatbot` | **Date**: 2026-09-16 | **Spec**: [spec.md](spec.md)
 
 **Input**: Feature specification from `specs/001-pnw-student-chatbot/spec.md` and user direction:
-FastAPI, React, PostgreSQL with pgvector, Docker deployment.
+FastAPI, React, PostgreSQL with pgvector, Docker deployment, and a Google Gemini LLM API.
 
 ## Summary
 
 Build a grounded, informational PNW chatbot with a React chat interface and FastAPI API.
 PostgreSQL/pgvector stores eligible university sources, structured evidence and governance;
 active conversations stay in memory and are deleted on End chat or 30 minutes without a student
-message. Local inference supports the retention constraint. Retrieval filters eligible,
+message. Google Gemini provides the initial hosted LLM integration; local inference remains a
+fallback for environments where external processing is not permitted. Retrieval filters eligible,
 applicable evidence, preserves source structure, and validates citations before returning a
 complete answer. Unsupported or ambiguous questions receive clarification or safe refusal.
 
@@ -22,8 +23,9 @@ model downloads have been created or deployed. The specification and design are 
 **Language/Version**: Python 3.12; TypeScript with React 19; Node 22 for frontend build.
 
 **Primary Dependencies**: FastAPI, Pydantic 2, SQLAlchemy 2, psycopg 3, Alembic, Vite,
-Sentence Transformers, llama.cpp, Beautiful Soup and pypdf. Exact versions/digests pinned and
-compatibility checked during implementation; research.md records model defaults.
+Sentence Transformers, Google GenAI Python SDK (`google-genai`), Gemini `gemini-2.5-flash-lite`,
+llama.cpp fallback, Beautiful Soup and pypdf. Pin the SDK version, model identifier and Docker
+image digests during implementation; research.md records provider, quota and data-handling gates.
 
 **Storage**: PostgreSQL 17 with pgvector 0.8 (`vector(384)`) for university evidence, governance
 and aggregate metrics only. API/browser RAM for active conversations. No Redis or transcript DB.
@@ -32,8 +34,9 @@ and aggregate metrics only. API/browser RAM for active conversations. No Redis o
 for React; Playwright for end-to-end, keyboard and retention journeys; human evidence scoring,
 manual screen-reader review and load tests. Dependency/model fakes in CI; real-model release tests.
 
-**Target Platform**: Linux Docker Compose host; modern desktop/mobile browsers. CPU development
-profile and GPU inference benchmark profile. Same-origin HTTPS public endpoint.
+**Target Platform**: Linux Docker Compose host; modern desktop/mobile browsers. Gemini API is the
+default development/integration provider over outbound HTTPS; local CPU/GPU inference is the
+fallback profile. Same-origin HTTPS public endpoint.
 
 **Project Type**: Web application with controlled source-operations CLI and scheduled ingestion.
 
@@ -41,10 +44,14 @@ profile and GPU inference benchmark profile. Same-origin HTTPS public endpoint.
 9-second request deadline. SC-003 answer correctness >=90% for answerable cases, with SC-001/002
 zero unsupported claims and correct abstention across the evaluated set. All SC-001–008 apply.
 
-**Constraints**: One API worker; no retained conversation content; 30-minute idle cutoff;
+**Constraints**: One API worker; no retained conversation content in this application or its
+configured LLM service; 30-minute idle cutoff;
 automated source/version qualification and source-backed term/session applicability; fail-safe behavior under outages;
 no student records, transactions or personal degree decisions. Raw responses never stream before
-validation. Inference has no outbound network requirement after model provisioning.
+validation. The unpaid Gemini tier MUST NOT be used for production student traffic unless its
+current terms and retention behavior are explicitly accepted as compatible with the constitution;
+otherwise use an approved paid/Vertex AI configuration or the local fallback. API keys stay
+server-side in Docker secrets.
 
 **Scale/Scope**: All FR-012 topics. Planning benchmark envelope: 200 active sessions, four
 concurrent generations, 50,000 evidence blocks; single Linux host initially. Bounds are test
@@ -81,7 +88,7 @@ services on a private network, with the web proxy as the public entry point.
 | Session manager | An API module holding conversations and cancellation handles in RAM. Student messages reset the 30-minute idle timer; End chat or expiry invalidates pending work and clears state. |
 | Retrieval and qualification gate | API modules that check context, combine keyword and exact vector search, assemble complete evidence, and reject stale, conflicting or inapplicable sources. Recheck eligibility before answer release. |
 | Local embedding model | Shared model code loaded locally by API and ingestion processes. Produces temporary query vectors for retrieval and persistent public-corpus vectors for pgvector. No query embeddings are stored. |
-| Local inference service | llama.cpp generates structured answer candidates from supplied evidence and context. It has no direct database access or authority to qualify sources; its slots are erased after each request. |
+| LLM adapter and provider | Encapsulates stateless Gemini API calls and the optional local llama.cpp fallback. It sends bounded evidence/context, handles quotas and timeouts, and exposes only structured candidates; providers have no database access or source-authority role. |
 | Answer validator | An API module checking evidence references, citation support, dates and response structure. Returns a supported answer, clarification or safe limitation; generated tokens are not streamed before validation. |
 | PostgreSQL with pgvector | Persists public source versions, evidence, corpus embeddings, qualification results, source events and aggregate metrics. Stores no student conversations. |
 | Scheduled ingestion and operator CLI | Fetch bounded official sources, extract structured content, run automatic qualification and refresh checks, and write source versions and vectors. Operators can inspect or withdraw sources; document sign-off is not required. |
@@ -110,7 +117,9 @@ flowchart TB
             Retrieval <--> QueryEmbed
             Coordinator --> Validator
         end
-        Model[Local llama.cpp inference]
+        Model[LLM adapter]
+        Gemini[Google Gemini API\n gemini-2.5-flash-lite]
+        Local[Optional local llama.cpp fallback]
         DB[(PostgreSQL and pgvector)]
         Ingest[Scheduled ingestion and automatic qualification]
         CorpusEmbed[Local corpus embedding model]
@@ -118,6 +127,8 @@ flowchart TB
         Web <--> Coordinator
         Retrieval <-->|Eligible evidence and source metadata| DB
         Coordinator <-->|Evidence and candidate answer| Model
+        Model --> Gemini
+        Model -. fallback .-> Local
         Validator <-->|Final eligibility check| DB
         Coordinator -->|Aggregate metrics only| DB
         Operator --> Ingest
@@ -252,8 +263,48 @@ tests/fixtures/{corpus,qualification,evaluation}/
 ```
 
 **Structure Decision**: Separate frontend/backend with explicit source governance, ingestion,
-retrieval and session boundaries. Shared Docker configuration lives in deploy/. Contract documents
-are technology-neutral enough to validate FastAPI's generated schema and CLI behavior.
+retrieval and session boundaries. Shared Docker configuration lives in deploy/. The Gemini
+adapter is isolated behind the generation interface so provider quotas, failures and retention
+policy can be tested independently and the local model can be selected without changing the API.
+Contract documents validate FastAPI's generated schema, provider adapter behavior and CLI behavior.
+
+## Architecture
+
+The web client calls the FastAPI coordinator through the same-origin proxy. The coordinator
+keeps the active session in memory, retrieves only currently eligible evidence from PostgreSQL,
+and sends a bounded prompt containing the student question, conversational context and retrieved
+evidence to the configured LLM adapter. The adapter defaults to Gemini for development and can
+select the local llama.cpp fallback when external processing is disallowed or Gemini is unavailable.
+The answer validator requires structured claim/citation references and performs a final source
+eligibility check before returning any answer. Neither the Gemini service nor the local model may
+select source authority, fetch URLs, or write conversation data to persistent storage.
+
+```mermaid
+flowchart LR
+    Student[Student] --> Web[React client and TLS proxy]
+    Web --> API[FastAPI request coordinator]
+    API <--> Session[In-memory session manager]
+    API --> Retrieve[Retrieval and qualification gate]
+    Retrieve <--> DB[(PostgreSQL + pgvector)]
+    API --> Adapter[LLM adapter]
+    Adapter --> Gemini[Google Gemini API\n gemini-2.5-flash-lite]
+    Adapter -. fallback .-> Local[Local llama.cpp model]
+    Gemini -. bounded request/response\n no provider conversation state .-> Adapter
+    API --> Validate[Answer and citation validator]
+    Validate --> DB
+    Validate --> API
+    API --> Web
+    Sources[Official PNW sources] --> Ingest[Scheduled ingestion and automatic qualification]
+    Ingest --> DB
+```
+
+The Gemini adapter uses stateless generate-content calls: it sends the current bounded context
+and evidence on each request rather than provider-side conversation IDs or implicit caching.
+It disables optional caching/features and sends no student identifiers. Provider errors, quota
+exhaustion, timeouts or data-policy incompatibility produce a safe limitation or trigger the
+local fallback according to deployment configuration; the API never returns an unchecked model
+response. A production release is blocked until the selected Gemini account/service terms,
+logging configuration and retention behavior pass the constitution's conversation-data gate.
 
 ## Answer and source processing
 
@@ -263,14 +314,17 @@ are technology-neutral enough to validate FastAPI's generated schema and CLI beh
 3. Retrieve eligible evidence with exact vectors, keyword ranking and structured course lookup.
    Fetch complete parent units and related conflict records. If evidence is incomplete, withhold
    affected claims. Refer only using eligible source-backed contact information.
-4. Supply evidence IDs and bounded context to local inference as untrusted data, never instructions.
+4. Supply evidence IDs and bounded context to the configured LLM adapter as untrusted data,
+   never instructions. The adapter uses stateless Gemini calls by default and may select local
+   inference when configured; provider output is always treated as an untrusted candidate.
    Require structured segments with evidence IDs. Preserve dates, table headers, exceptions,
    prerequisite AND/OR groups and applicability. Never infer program absence from no hits.
 5. Validate response shape, evidence existence, citation support, date/term consistency and
    unsupported additions. A semantic support check supplements deterministic checks; neither
    is treated as a mathematical guarantee. Rejection yields a limitation, not unchecked output.
-6. Recheck governance state at answer authorization and session generation before enqueueing.
-   Discard stale/late results. Clear inference slots and temporary query embeddings after use.
+6. Recheck qualification state at answer authorization and session generation before enqueueing.
+   Discard stale/late results. Clear provider request state and temporary query embeddings after
+   use; erase local inference slots when the fallback is selected.
 7. Aggregate only bounded outcome counts and latency buckets. No student text in any telemetry.
 
 Source ingestion is isolated from request processing. Each child source independently qualifies.
@@ -281,8 +335,9 @@ No human document review, approval CLI or term-specific sign-off is part of init
 
 ## Deployment and security
 
-Compose starts PostgreSQL, runs migrations once, then starts inference/API/web after health
-checks. Source jobs run on a scheduler invoking one-shot containers. API uses a restricted DB
+Compose starts PostgreSQL, runs migrations once, then starts the Gemini adapter/API/web after
+health checks; the local inference service starts only for the fallback profile. Source jobs run
+on a scheduler invoking one-shot containers. API uses a restricted DB
 role; governance and ingestion credentials are separate. Mount secrets through Docker secrets,
 not image layers or frontend bundles. Expose only the TLS web proxy; serve React assets and
 proxy `/api` on the same origin. Reject arbitrary origins and render no untrusted HTML.
@@ -297,7 +352,8 @@ replayed before restored sources become eligible; if unavailable, quarantine res
 
 Single API process intentionally loses sessions on restart. Admission controls prevent memory
 exhaustion; do not evade retention by enabling a persistent queue or multiworker shared store.
-Inference cleanup failures quarantine slots and restart inference before readiness returns.
+Gemini quota and network failures return bounded safe errors or use the configured local fallback;
+local inference cleanup failures quarantine slots and restart the service before readiness returns.
 
 ## Validation and delivery sequence
 
