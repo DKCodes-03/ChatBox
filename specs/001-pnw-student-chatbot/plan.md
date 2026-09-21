@@ -153,7 +153,7 @@ sequenceDiagram
     participant Session as Session manager
     participant Embed as Local embedding model
     participant DB as PostgreSQL and pgvector
-    participant LLM as Local inference
+    participant LLM as LLM adapter (Gemini or local fallback)
     participant Gate as Answer validator
     Student->>UI: Submit question
     UI->>API: POST /api/v1/messages
@@ -179,7 +179,7 @@ sequenceDiagram
             Gate-->>API: Validated result or rejection
             API->>Session: Recheck generation and expiry
             Session-->>API: Active or invalidated
-            API->>LLM: Clear request slot and temporary state
+            API->>LLM: Clear provider request state and temporary vectors
             alt Validated and session active
                 API-->>UI: Complete answer with citations
             else Validation failed and session active
@@ -211,6 +211,74 @@ Only public source material, qualification records, model weights and aggregate 
 Student messages, generated answers and query vectors remain transient across browser, API and
 inference. The request path does not crawl new URLs or write transcripts to PostgreSQL. Docker
 health checks, migrations and source backups support deployment without restoring ended sessions.
+
+## RAG Vector Database Preparation Workflow
+
+The vector database is prepared from public PNW sources before student retrieval begins. This
+workflow runs in the ingestion container and writes only public source content, qualification
+metadata and corpus embeddings. It never writes student questions, conversation text or query
+embeddings to PostgreSQL.
+
+1. **Discover bounded sources**: start with the configured PNW corpus and permitted public links.
+   Check redirects, reject private/reserved destinations, enforce crawl depth, URL count and
+   document-size limits, and record the canonical URL.
+2. **Fetch and fingerprint**: retrieve HTML or PDF content, normalize encoding, calculate a
+   content hash, and create an immutable `SourceVersion`. A failed fetch never replaces the last
+   usable version with an error page.
+3. **Extract structure**: remove navigation and presentation controls; preserve headings, lists,
+   links, PDF page references, table headers, rows, footnotes, campus labels and catalog context.
+   Quarantine unreadable PDFs, missing expandable content and malformed tables with a reason code.
+4. **Normalize and classify**: assign topic, institution, campus, program, student level, catalog
+   year, term and session metadata only when supported by the source. Unknown scope remains
+   unknown; it is never treated as `all`.
+5. **Chunk semantic evidence**: split at headings and complete table-row or prerequisite-group
+   boundaries. Include heading context in each chunk, preserve parent/version IDs, and keep each
+   embedding unit within the model's input limit. Do not split a deadline row from its column
+   headings or a prerequisite alternative from its relationship.
+6. **Run automated qualification**: check provenance, extraction completeness, applicability,
+   effective dates, source freshness and conflicts. A version becomes eligible only when every
+   required check passes. No document reviewer or office sign-off is required. Failed checks
+   quarantine the affected evidence and produce a safe limitation at query time.
+7. **Create embeddings**: use the pinned local `all-MiniLM-L6-v2` model, normalize vectors,
+   record the model revision and dimensions, and generate one vector for each eligible evidence
+   block. Embeddings are derived from public corpus content only.
+8. **Load transactionally**: insert the source version, evidence blocks, qualification result and
+   embeddings in one transaction. Build or refresh the pgvector exact-search path and PostgreSQL
+   full-text fields only after the transaction succeeds. A failed batch leaves the prior eligible
+   version available and does not expose partial chunks.
+9. **Validate the index**: run deterministic checks for row counts, vector dimensions, parent
+   links, citation anchors, table relationships, metadata filters and duplicate hashes. Run
+   retrieval fixtures for parking, schedules, programs, prerequisites and policy referrals.
+10. **Publish and refresh**: mark the version eligible only after validation. Recheck sources
+    daily and expire qualification after 24 hours or the source's effective end, whichever comes
+    first. Material changes create a new version and re-embed; old evidence remains unavailable
+    until the replacement qualifies. Withdrawals remove evidence from retrieval immediately.
+
+```mermaid
+flowchart TD
+    A[Bounded PNW source manifest] --> B[Fetch HTML/PDF]
+    B --> C[Canonicalize and content hash]
+    C --> D[Extract headings, tables, links and page anchors]
+    D --> E{Complete and readable?}
+    E -- No --> Q[Quarantine with reason code]
+    E -- Yes --> F[Assign supported scope and freshness metadata]
+    F --> G{Automated qualification passes?}
+    G -- No --> Q
+    G -- Yes --> H[Semantic chunking with parent/version IDs]
+    H --> I[Local MiniLM embedding]
+    I --> J[Transactional PostgreSQL + pgvector load]
+    J --> K{Index and retrieval fixtures pass?}
+    K -- No --> Q
+    K -- Yes --> L[Publish eligible evidence]
+    L --> M[Daily refresh and 24-hour expiry]
+    M --> B
+```
+
+The query path filters by eligibility, freshness, context and conflict state before exact vector
+search. It combines vector candidates with PostgreSQL full-text and structured course lookups,
+then returns complete evidence blocks to the LLM adapter. Retrieval never treats vector similarity
+as proof of policy authority, and a final qualification check runs immediately before answer
+authorization.
 
 ## Project Structure
 
@@ -267,44 +335,6 @@ retrieval and session boundaries. Shared Docker configuration lives in deploy/. 
 adapter is isolated behind the generation interface so provider quotas, failures and retention
 policy can be tested independently and the local model can be selected without changing the API.
 Contract documents validate FastAPI's generated schema, provider adapter behavior and CLI behavior.
-
-## Architecture
-
-The web client calls the FastAPI coordinator through the same-origin proxy. The coordinator
-keeps the active session in memory, retrieves only currently eligible evidence from PostgreSQL,
-and sends a bounded prompt containing the student question, conversational context and retrieved
-evidence to the configured LLM adapter. The adapter defaults to Gemini for development and can
-select the local llama.cpp fallback when external processing is disallowed or Gemini is unavailable.
-The answer validator requires structured claim/citation references and performs a final source
-eligibility check before returning any answer. Neither the Gemini service nor the local model may
-select source authority, fetch URLs, or write conversation data to persistent storage.
-
-```mermaid
-flowchart LR
-    Student[Student] --> Web[React client and TLS proxy]
-    Web --> API[FastAPI request coordinator]
-    API <--> Session[In-memory session manager]
-    API --> Retrieve[Retrieval and qualification gate]
-    Retrieve <--> DB[(PostgreSQL + pgvector)]
-    API --> Adapter[LLM adapter]
-    Adapter --> Gemini[Google Gemini API\n gemini-2.5-flash-lite]
-    Adapter -. fallback .-> Local[Local llama.cpp model]
-    Gemini -. bounded request/response\n no provider conversation state .-> Adapter
-    API --> Validate[Answer and citation validator]
-    Validate --> DB
-    Validate --> API
-    API --> Web
-    Sources[Official PNW sources] --> Ingest[Scheduled ingestion and automatic qualification]
-    Ingest --> DB
-```
-
-The Gemini adapter uses stateless generate-content calls: it sends the current bounded context
-and evidence on each request rather than provider-side conversation IDs or implicit caching.
-It disables optional caching/features and sends no student identifiers. Provider errors, quota
-exhaustion, timeouts or data-policy incompatibility produce a safe limitation or trigger the
-local fallback according to deployment configuration; the API never returns an unchecked model
-response. A production release is blocked until the selected Gemini account/service terms,
-logging configuration and retention behavior pass the constitution's conversation-data gate.
 
 ## Answer and source processing
 
