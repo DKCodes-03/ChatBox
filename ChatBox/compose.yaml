@@ -1,0 +1,121 @@
+# Docker Compose defines the local services that make up ChatBox.
+#
+# Start the development stack from this directory with:
+#   docker compose up --build
+#
+# Stop the containers with:
+#   docker compose down
+#
+# Stop containers and delete the database volume with:
+#   docker compose down -v
+# The last command is destructive for local database data, so use it only when
+# you intentionally want a clean database.
+
+services:
+  # The React/Vite browser application.
+  frontend:
+    build:
+      # The context is the repository root so this file can use frontend/.
+      context: ./frontend
+      dockerfile: Dockerfile
+    ports:
+      # HOST_PORT:CONTAINER_PORT. Open http://localhost:3000 in a browser.
+      - "${FRONTEND_PORT:-3000}:3000"
+    environment:
+      # This value is available to the Vite container. The browser-facing API
+      # URL will be configured by the frontend implementation in a later task.
+      VITE_API_BASE_URL: http://localhost:${BACKEND_PORT:-8000}
+    volumes:
+      # Mount source code for a quick edit-refresh development loop.
+      - ./frontend:/app
+      # Keep container-installed node_modules separate from the host folder.
+      - frontend_node_modules:/app/node_modules
+    depends_on:
+      backend:
+        # Do not start the frontend until the API reports healthy.
+        condition: service_healthy
+    networks:
+      - chatbox
+
+  # The Python FastAPI application that will coordinate chat, retrieval, and
+  # the local LLM. The app.main entrypoint is created in a later task.
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    ports:
+      # Open the API docs at http://localhost:8000/docs after the API exists.
+      - "${BACKEND_PORT:-8000}:8000"
+    environment:
+      # Compose substitutes values from .env; defaults keep a fresh checkout
+      # usable for local development.
+      DATABASE_URL: ${DATABASE_URL:-postgresql+asyncpg://pnw_chatbot:change-me-for-local-development@db:5432/pnw_chatbot}
+      OLLAMA_BASE_URL: ${OLLAMA_BASE_URL:-http://ollama:11434}
+    depends_on:
+      db:
+        condition: service_healthy
+      ollama:
+        condition: service_healthy
+    healthcheck:
+      # curl is not included in python:slim by default. This healthcheck will
+      # be enabled once the backend image adds curl or an equivalent check.
+      test: ["CMD-SHELL", "python -c \"import urllib.request; urllib.request.urlopen('http://localhost:8000/api/health')\""]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 20s
+    networks:
+      - chatbox
+
+  # PostgreSQL stores source metadata, chunks, citations, and corpus versions.
+  # The pgvector image adds vector similarity support to PostgreSQL.
+  db:
+    image: pgvector/pgvector:pg16
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-pnw_chatbot}
+      POSTGRES_USER: ${POSTGRES_USER:-pnw_chatbot}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-change-me-for-local-development}
+    ports:
+      # Keeping this port published makes local database inspection possible.
+      - "${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      # Named volumes survive `docker compose down` and preserve local data.
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      # pg_isready asks PostgreSQL whether it is accepting connections.
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    networks:
+      - chatbox
+
+  # Ollama serves the local open-weight language model without a paid API.
+  ollama:
+    image: ollama/ollama:latest
+    ports:
+      - "${OLLAMA_PORT:-11434}:11434"
+    volumes:
+      # Model files can be large; keep them in a named volume between restarts.
+      - ollama_data:/root/.ollama
+    healthcheck:
+      # Ollama exposes this endpoint when its server is ready.
+      test: ["CMD", "ollama", "list"]
+      interval: 10s
+      timeout: 10s
+      retries: 12
+      start_period: 20s
+    networks:
+      - chatbox
+
+# Named volumes are managed by Docker and are independent of container life.
+volumes:
+  postgres_data:
+  ollama_data:
+  frontend_node_modules:
+
+# A private network lets services reach each other by service name while still
+# allowing only explicitly published ports to be reached from the host.
+networks:
+  chatbox:
+    driver: bridge

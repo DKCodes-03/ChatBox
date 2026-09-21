@@ -139,6 +139,56 @@ sequenceDiagram
     end
 ```
 
+### RAG Vector Database Preparation Workflow
+
+The retrieval database is prepared separately from student request handling so
+that incomplete or unreviewed source content cannot become answerable by
+accident. The workflow is repeatable and produces an auditable corpus snapshot.
+
+1. **Discover sources**: Start from the curated PNW source list and follow only
+  directly linked official webpages and PDF/document files. Record the canonical
+  URL, title, source type, campus/term scope, and available publication or
+  update date in `SourceDocument`.
+2. **Fetch and fingerprint**: Download each source with bounded timeouts and
+  content-type checks. Normalize the response, compute `content_hash`, and
+  skip unchanged active sources. Mark unavailable, malformed, or replaced
+  sources for review rather than deleting their prior record.
+3. **Extract answerable content**: Parse HTML and documents into headings,
+  paragraphs, list items, and table rows. Remove navigation, boilerplate,
+  decorative content, and unrelated links while preserving dates, conditions,
+  prerequisites, campus labels, and page references.
+4. **Chunk with structure**: Group related extracted elements into bounded
+  `SourceChunk` records. Keep heading and page/section references with each
+  chunk, avoid splitting table rows or procedural steps, and retain the source
+  URL for direct citations.
+5. **Review and classify**: Validate that each chunk belongs to its source,
+  has meaningful content, and carries the correct scope and freshness metadata.
+  Set the document to `active` only after validation; use `archived` or
+  `disputed` for stale, conflicting, or failed sources.
+6. **Generate embeddings**: Embed each validated chunk with the configured
+  local embedding model. Store the embedding model name, model version, and
+  vector dimensions with the corpus metadata so a model change requires a
+  complete re-index rather than mixed vectors.
+7. **Build the pgvector index**: Load chunks and embeddings in one versioned
+  corpus build, create the vector index, and retain document/chunk metadata for
+  campus, term, status, and freshness filters. Promote the build only when all
+  active chunks have valid embeddings and the database health check passes.
+8. **Run retrieval validation**: Execute representative questions for parking,
+  programs, registration errors, plans of study, prerequisites, deadlines,
+  academic integrity, accessibility, and student services. Check citation
+  coverage, scope filtering, table/condition preservation, and safe behavior
+  for no-match and conflicting-source cases.
+9. **Publish and refresh**: Make the validated corpus version the active
+  retrieval target. Schedule source refreshes, compare fingerprints, rebuild
+  changed documents, and require re-review when content, scope, freshness, or
+  the embedding model changes. Keep the previous validated corpus available
+  for rollback until the replacement passes validation.
+
+The ingestion command must be idempotent, must never index a source marked
+`disputed`, and must fail the build when an active source has no usable chunks
+or when embeddings do not match the configured model dimensions. Runtime
+retrieval queries only active chunks from the promoted corpus version.
+
 ## Technical Context
 
 **Language/Version**: Python 3.12, TypeScript 5.x, React 18, Node 20, Docker Compose
@@ -146,6 +196,11 @@ sequenceDiagram
 **Primary Dependencies**: FastAPI, Pydantic, SQLAlchemy, asyncpg, PostgreSQL 16, pgvector, React, Vite, Ollama with a free open-weight model such as `llama3.2:3b`, pytest, Vitest/RTL
 
 **Storage**: PostgreSQL 16 with pgvector for source chunks and metadata; session state held in memory or a short-lived server-side session store; no transcript retention for v1
+
+**RAG preparation**: A repeatable ingestion/indexing job extracts approved PNW
+webpages and linked documents, creates structure-preserving chunks, generates
+versioned local embeddings, validates representative retrieval cases, and
+promotes only a complete corpus snapshot to pgvector.
 
 **Testing**: pytest for backend validation, Vitest/React Testing Library for frontend user flows, smoke tests for API contracts and safety behavior
 
@@ -202,6 +257,12 @@ backend/
 │   ├── schemas/
 │   ├── services/
 │   └── tests/
+├── ingestion/
+│   ├── fetch_sources.py
+│   ├── extract_content.py
+│   ├── chunk_content.py
+│   ├── embed_and_index.py
+│   └── validate_corpus.py
 ├── Dockerfile
 ├── requirements.txt
 └── pyproject.toml

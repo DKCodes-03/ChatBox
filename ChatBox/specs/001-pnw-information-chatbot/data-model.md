@@ -22,6 +22,8 @@ Represents an approved university page or official document that can answer stud
 | status | enum | active, archived, disputed |
 | reviewed_by | text | University owner or designated reviewer |
 | content_hash | text | Hash to detect changed or replaced source content |
+| ingestion_status | enum | discovered, extracted, embedded, validated, failed |
+| corpus_version | text | Versioned corpus build that contains this source |
 | created_at | timestamp | Audit record |
 
 Validation rules:
@@ -42,14 +44,41 @@ Represents a searchable unit extracted from a source document.
 | content | text | Chunk text used for retrieval |
 | page_ref | text | Page number or section reference |
 | embedding | vector | pgvector embedding for semantic search |
+| embedding_model | text | Local model used to create the vector |
+| embedding_dimensions | integer | Vector dimension; must match the index |
+| corpus_version | text | Promoted corpus build containing this chunk |
 | created_at | timestamp | |
 
 Validation rules:
 - `content` must be non-empty.
 - `embedding` must be present for any chunk eligible for semantic retrieval.
+- `embedding_model` and `embedding_dimensions` must match the configured corpus
+	build before a chunk is eligible for semantic retrieval.
 - `chunk_index` must be >= 1.
 
-### 3. ConversationSession
+### 3. CorpusBuild
+
+Represents one repeatable source ingestion and vector-index build.
+
+| Field | Type | Notes |
+|---|---|---|
+| id | UUID | Primary key |
+| version | text | Unique corpus version identifier |
+| embedding_model | text | Local embedding model used for the build |
+| embedding_dimensions | integer | Expected vector dimensions |
+| source_count | integer | Number of sources included |
+| chunk_count | integer | Number of validated chunks included |
+| status | enum | building, validated, promoted, failed, retired |
+| started_at | timestamp | Build start |
+| completed_at | timestamp | Set when validation finishes |
+| validation_summary | text | Retrieval and integrity check results |
+
+Validation rules:
+- A build cannot be `promoted` unless every active source has usable chunks,
+	matching embeddings, and passing retrieval validation.
+- Only one build is the active `promoted` retrieval target at a time.
+
+### 4. ConversationSession
 
 Tracks the current chat scope within a single browser session, but not long-term transcripts.
 
@@ -68,7 +97,7 @@ Validation rules:
 - `expires_at` is required; sessions are ephemeral by design.
 - `campus_context` and `term_context` are optional but should be retained within a single session when provided.
 
-### 4. StudentQuestion
+### 5. StudentQuestion
 
 Stores the incoming question and the extracted scope context used for retrieval.
 
@@ -87,7 +116,7 @@ Validation rules:
 - `raw_text` must be present.
 - The system may infer a `campus_hint` or `term_hint`, but it must ask a follow-up question when the answer would be ambiguous.
 
-### 5. AnswerRecord
+### 6. AnswerRecord
 
 Stores the final answer returned to the student and any safety metadata.
 
@@ -108,7 +137,7 @@ Validation rules:
 - If `answer_type = supported`, then at least one citation is required.
 - If `answer_type != supported`, the response must include a safe-failure message and an escalation path when available.
 
-### 6. Citation
+### 7. Citation
 
 Links an answer back to the evidence used to support it.
 
@@ -126,7 +155,7 @@ Validation rules:
 - `link_url` must be present for direct-source answers.
 - `quote_snippet` must not exceed the source chunk length or be fabricated beyond the evidence text.
 
-### 7. EscalationDestination
+### 8. EscalationDestination
 
 Contains approved office or advisor destinations for referrals.
 
@@ -147,6 +176,8 @@ Validation rules:
 ## Relationships
 
 - `SourceDocument` 1:N `SourceChunk`
+- `CorpusBuild` 1:N `SourceDocument`
+- `CorpusBuild` 1:N `SourceChunk`
 - `ConversationSession` 1:N `StudentQuestion`
 - `StudentQuestion` 1:1 `AnswerRecord`
 - `AnswerRecord` 1:N `Citation`
