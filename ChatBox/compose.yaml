@@ -75,6 +75,9 @@ services:
       POSTGRES_DB: ${POSTGRES_DB:-pnw_chatbot}
       POSTGRES_USER: ${POSTGRES_USER:-pnw_chatbot}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-change-me-for-local-development}
+      # Keep psql commands from opening an interactive pager/alternate screen.
+      PAGER: cat
+      PSQL_PAGER: cat
     ports:
       # Keeping this port published makes local database inspection possible.
       - "${POSTGRES_PORT:-5432}:5432"

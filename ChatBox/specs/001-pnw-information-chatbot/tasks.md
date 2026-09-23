@@ -19,14 +19,14 @@
 
 ## Phase 2: Foundational Data and Platform
 
-- [ ] T006 Define SQLAlchemy models and enums for `SourceDocument`, `SourceChunk`, `CorpusBuild`, `ConversationSession`, `StudentQuestion`, `AnswerRecord`, `Citation`, and `EscalationDestination` in `backend/app/models/`.
-- [ ] T007 Create PostgreSQL migrations for pgvector extension, source metadata, corpus versions, citations, escalation destinations, and ephemeral session state in `backend/app/db/migrations/`.
-- [ ] T008 [P] Implement database session management, configuration loading, and startup health checks in `backend/app/core/config.py` and `backend/app/db/`.
-- [ ] T009 [P] Define Pydantic request and response schemas matching `contracts/chat-api.md` in `backend/app/schemas/`.
-- [ ] T010 [P] Add the curated PNW source manifest and source ownership/review metadata format in `backend/ingestion/sources.yaml`.
-- [ ] T011 Implement corpus build state transitions, active-corpus selection, and rollback-safe promotion rules in `backend/app/services/corpus_service.py`.
-- [ ] T012 Implement embedding-provider configuration with model name, version, dimensions, and a local Ollama-compatible adapter in `backend/app/services/embedding_service.py`.
-- [ ] T013 [P] Add unit tests for model constraints, corpus promotion guards, embedding-dimension checks, and ephemeral-session expiry in `backend/tests/unit/`.
+- [x] T006 Define SQLAlchemy models and enums for `SourceDocument`, `SourceChunk`, `CorpusBuild`, `ConversationSession`, `StudentQuestion`, `AnswerRecord`, `Citation`, and `EscalationDestination` in `backend/app/models/`.
+- [x] T007 Create PostgreSQL migrations for pgvector extension, source metadata, corpus versions, citations, escalation destinations, and ephemeral session state in `backend/app/db/migrations/`.
+- [x] T008 [P] Implement database session management, configuration loading, and startup health checks in `backend/app/core/config.py` and `backend/app/db/`.
+- [x] T009 [P] Define Pydantic request and response schemas matching `contracts/chat-api.md` in `backend/app/schemas/`.
+- [x] T010 [P] Add the curated PNW source manifest and source ownership/review metadata format in `backend/ingestion/sources.yaml`.
+- [x] T011 Implement corpus build state transitions, active-corpus selection, and rollback-safe promotion rules in `backend/app/services/corpus_service.py`.
+- [x] T012 Implement embedding-provider configuration with model name, version, dimensions, and a local Ollama-compatible adapter in `backend/app/services/embedding_service.py`.
+- [x] T013 [P] Add unit tests for model constraints, corpus promotion guards, embedding-dimension checks, and ephemeral-session expiry in `backend/tests/unit/`.
 
 ## Phase 3: RAG Corpus Preparation
 

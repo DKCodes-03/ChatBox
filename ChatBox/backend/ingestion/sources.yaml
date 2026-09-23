@@ -1,0 +1,110 @@
+manifest_version: 1
+
+defaults:
+  allowed_hosts:
+    - pnw.edu
+    - www.pnw.edu
+  require_https: true
+  review:
+    required_before_activation: true
+    default_status: pending_review
+    default_cadence_days: 30
+  follow_links:
+    enabled: true
+    allowed_content_types:
+      - text/html
+      - application/pdf
+      - application/msword
+      - application/vnd.openxmlformats-officedocument.wordprocessingml.document
+
+sources:
+  - id: pnw-academic-calendar
+    title: PNW Academic Calendar
+    url: https://www.pnw.edu/academic-calendar/
+    source_type: webpage
+    campus_scope: both
+    academic_term: current
+    owner: registrar
+    reviewer: registrar-designated-reviewer
+    review_status: pending_initial_review
+    last_reviewed: null
+    review_cadence_days: 30
+    follow_links: true
+
+  - id: pnw-registrar
+    title: PNW Registrar
+    url: https://www.pnw.edu/registrar/
+    source_type: webpage
+    campus_scope: both
+    academic_term: current
+    owner: registrar
+    reviewer: registrar-designated-reviewer
+    review_status: pending_initial_review
+    last_reviewed: null
+    review_cadence_days: 30
+    follow_links: true
+
+  - id: pnw-academic-catalog
+    title: PNW Academic Catalog
+    url: https://catalog.pnw.edu/
+    source_type: catalog
+    campus_scope: both
+    academic_term: current
+    owner: academic-affairs
+    reviewer: academic-affairs-designated-reviewer
+    review_status: pending_initial_review
+    last_reviewed: null
+    review_cadence_days: 30
+    follow_links: true
+
+  - id: pnw-policies
+    title: PNW Policies
+    url: https://www.pnw.edu/policies/
+    source_type: policy
+    campus_scope: both
+    academic_term: current
+    owner: academic-affairs
+    reviewer: policy-designated-reviewer
+    review_status: pending_initial_review
+    last_reviewed: null
+    review_cadence_days: 30
+    follow_links: true
+
+  - id: pnw-parking
+    title: PNW Parking and Transportation
+    url: https://www.pnw.edu/parking/
+    source_type: webpage
+    campus_scope: both
+    academic_term: current
+    owner: parking-and-transportation
+    reviewer: campus-services-designated-reviewer
+    review_status: pending_initial_review
+    last_reviewed: null
+    review_cadence_days: 30
+    follow_links: true
+
+  - id: pnw-accessibility
+    title: PNW Accessibility
+    url: https://www.pnw.edu/accessibility/
+    source_type: webpage
+    campus_scope: both
+    academic_term: current
+    owner: accessibility-services
+    reviewer: accessibility-designated-reviewer
+    review_status: pending_initial_review
+    last_reviewed: null
+    review_cadence_days: 30
+    follow_links: true
+
+  - id: pnw-student-services
+    title: PNW Student Services
+    url: https://www.pnw.edu/student-services/
+    source_type: webpage
+    campus_scope: both
+    academic_term: current
+    owner: student-services
+    reviewer: student-services-designated-reviewer
+    review_status: pending_initial_review
+    last_reviewed: null
+    review_cadence_days: 30
+    follow_links: true
