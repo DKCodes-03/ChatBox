@@ -1,0 +1,43 @@
+# syntax=docker/dockerfile:1
+
+# This image is shared by the API, migration, and ingestion services. Those services run the same
+# Python code with different commands, which avoids maintaining three nearly identical images.
+FROM python:3.12-slim-trixie
+
+# Copy the pinned uv executable from its official image. uv installs the exact package versions
+# recorded in backend/uv.lock and creates the virtual environment inside /app/.venv.
+COPY --from=ghcr.io/astral-sh/uv:0.12.17 /uv /uvx /bin/
+
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    UV_COMPILE_BYTECODE=1 \
+    UV_LINK_MODE=copy
+
+WORKDIR /app
+
+# Copy dependency files first so Docker can reuse the dependency layer when only source code
+# changes. Development-only tools are excluded from the runtime image.
+COPY backend/pyproject.toml backend/uv.lock ./
+RUN uv sync --frozen --no-dev --no-install-project
+
+# Create an unprivileged runtime account. The fixed numeric ID lets Compose enforce the same user
+# even when a host does not know the account name.
+RUN groupadd --gid 65532 app \
+    && useradd --uid 65532 --gid 65532 --create-home --shell /usr/sbin/nologin app \
+    && mkdir -p /data/sources /models/embeddings \
+    && chown -R app:app /data/sources /models/embeddings
+
+# Copy the backend after installing dependencies. Future tasks add app.main, Alembic files, and
+# ingestion commands under this directory without requiring a Dockerfile redesign.
+COPY --chown=app:app backend/ ./
+
+# Commands can now call uvicorn, alembic, and other installed tools directly.
+ENV HOME=/home/app \
+    PATH="/app/.venv/bin:$PATH"
+
+USER app
+
+EXPOSE 8000
+
+# This is the API default. Compose overrides it for the migrate and ingest one-shot services.
+CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000", "--workers", "1"]

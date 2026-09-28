@@ -216,3 +216,13 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# ChatBox web and local development
+node_modules/
+frontend/dist/
+frontend/coverage/
+backend/.venv/
+deploy/secrets/
+deploy/models/
+.DS_Store
+*.tmp

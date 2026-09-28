@@ -1,0 +1,325 @@
+# Docker Compose describes every container that makes up the chatbot on one host.
+#
+# Beginner vocabulary:
+#   image      - a reusable filesystem and program template for a container.
+#   service    - one configured type of container, such as PostgreSQL or the API.
+#   volume     - storage whose data survives when a container is recreated.
+#   network    - a private path containers use to communicate with one another.
+#   secret     - a file mounted at /run/secrets without placing its value in this file.
+#   healthcheck - a command Docker repeats to decide whether a service is ready.
+#   profile    - an optional group started only when explicitly requested.
+#
+# First-time local setup, from the repository root:
+#   cp deploy/.env.example deploy/.env
+#   install -d -m 700 deploy/secrets
+#   mkdir -p deploy/models/embeddings deploy/models/local
+#   printf 'choose-a-long-random-password' > deploy/secrets/postgres_runtime_password
+#   printf 'choose-a-different-password' > deploy/secrets/postgres_migration_password
+#   printf 'choose-a-different-password' > deploy/secrets/postgres_governance_password
+#   printf 'your-gemini-api-key' > deploy/secrets/gemini_api_key
+#   chmod 444 deploy/secrets/*
+#
+# File-backed Compose secrets are mounted read-only as mode 0444; Compose cannot remap their owner
+# or mode. The host's mode-0700 directory keeps other host users out while non-root container users
+# can read only the individual secrets mounted into their service. Secret files and local models
+# are ignored by Git. Database work in later tasks creates the separate roles and grants.
+#
+# Useful commands:
+#   docker compose --env-file deploy/.env -f deploy/compose.yaml config
+#   docker compose --env-file deploy/.env -f deploy/compose.yaml up --build
+#
+# Ordinary `up` starts db, migrate, api, and web. Ingestion and local inference use profiles
+# because they are optional operational workloads.
+
+name: pnw-student-chatbot
+
+# `x-` sections are reusable YAML fragments, not containers. These settings apply to each Python
+# container so all of them run with the same least-privilege restrictions.
+x-backend-service: &backend-service
+  image: pnw-student-chatbot-api:local
+  build:
+    # The repository root is the build context, allowing Dockerfile.api to copy backend files.
+    context: ..
+    dockerfile: deploy/Dockerfile.api
+  env_file:
+    # Checked-in nonsecret defaults load first.
+    - path: ./.env.example
+      required: true
+    # An untracked deploy/.env may override defaults. Secret values still belong in secret files.
+    - path: ./.env
+      required: false
+  # UID/GID 65532 belongs to the unprivileged `app` account created in Dockerfile.api.
+  user: "65532:65532"
+  read_only: true
+  init: true
+  tmpfs:
+    # Read-only containers still need a small temporary directory for normal library operations.
+    - /tmp:size=64m,mode=1777,noexec,nosuid,nodev
+  cap_drop:
+    - ALL
+  security_opt:
+    - no-new-privileges:true
+  ulimits:
+    # Core dumps may contain prompts or credentials, so they are disabled.
+    core:
+      soft: 0
+      hard: 0
+  networks:
+    - backend
+
+services:
+  # PostgreSQL stores the approved public corpus, pgvector embeddings, governance events, and
+  # aggregate metrics. It must never store student conversation text or query embeddings.
+  db:
+    image: pgvector/pgvector:0.8.6-pg17-bookworm
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-pnw_chatbot}
+      POSTGRES_USER: ${POSTGRES_MIGRATION_USER:-pnw_chatbot_migrator}
+      # The official image reads the bootstrap password from this mounted file.
+      # PostgreSQL bootstraps the dedicated migration role with the same password file used by
+      # the migration job. Later migrations create the restricted runtime/governance roles.
+      POSTGRES_PASSWORD_FILE: /run/secrets/postgres_migration_password
+    secrets:
+      - postgres_migration_password
+    volumes:
+      # This named volume preserves the database when the container is recreated.
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - backend
+    healthcheck:
+      # Double dollar signs defer expansion until this command runs inside the container.
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 20s
+    ulimits:
+      core:
+        soft: 0
+        hard: 0
+    restart: unless-stopped
+    # There is intentionally no `ports` entry. Only containers on `backend` can reach port 5432.
+
+  # Migrations update the schema before the API starts. A zero exit code marks this one-shot job
+  # complete; a failure prevents the API from starting against an incompatible schema.
+  migrate:
+    <<: *backend-service
+    command: ["alembic", "upgrade", "head"]
+    environment:
+      POSTGRES_PASSWORD_FILE: /run/secrets/postgres_migration_password
+    secrets:
+      - postgres_migration_password
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: "no"
+
+  # FastAPI coordinates sessions, retrieval, generation, citations, and answer validation.
+  api:
+    <<: *backend-service
+    command:
+      - uvicorn
+      - app.main:app
+      - --host
+      - 0.0.0.0
+      - --port
+      - "8000"
+      - --workers
+      # One worker is required while active sessions live only in process memory.
+      - ${API_WORKERS:-1}
+      # Uvicorn's access log can include student-supplied URL data, so it stays disabled.
+      - --no-access-log
+      - --no-server-header
+    environment:
+      POSTGRES_PASSWORD_FILE: /run/secrets/postgres_runtime_password
+      GEMINI_API_KEY_FILE: /run/secrets/gemini_api_key
+      CHAT_ACCESS_LOG_ENABLED: "false"
+      REQUEST_BODY_LOGGING_ENABLED: "false"
+      SQL_ECHO: "false"
+      TRACE_CONTENT_ENABLED: "false"
+    secrets:
+      - postgres_runtime_password
+      - gemini_api_key
+    volumes:
+      # The embedding model is executable input, so the API can read but cannot replace it.
+      - type: bind
+        source: ${EMBEDDING_MODEL_HOST_DIR:-./models/embeddings}
+        target: /models/embeddings
+        read_only: true
+    networks:
+      # `edge` permits outbound Gemini HTTPS requests and traffic from the web proxy. `backend`
+      # permits database and optional local-model traffic. Neither API port is published.
+      - edge
+      - backend
+    depends_on:
+      db:
+        condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
+    healthcheck:
+      # Python is already in the API image, avoiding a separate curl dependency.
+      test:
+        - CMD
+        - python
+        - -c
+        - >-
+          import urllib.request;
+          urllib.request.urlopen('http://127.0.0.1:8000/api/v1/health/ready', timeout=3)
+      interval: 15s
+      timeout: 5s
+      retries: 8
+      # Model loading may take longer than ordinary application startup.
+      start_period: 120s
+    restart: unless-stopped
+
+  # Nginx serves the React build and proxies `/api/` to FastAPI. It is the only service exposed on
+  # a host port. Browser requests therefore cannot directly reach PostgreSQL, FastAPI, or llama.cpp.
+  web:
+    image: pnw-student-chatbot-web:local
+    build:
+      context: ..
+      dockerfile: deploy/Dockerfile.web
+    user: "101:101"
+    read_only: true
+    init: true
+    tmpfs:
+      - /tmp:size=32m,mode=1777,noexec,nosuid,nodev
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    ulimits:
+      core:
+        soft: 0
+        hard: 0
+    ports:
+      # Host port 8080 forwards to unprivileged container port 8080.
+      - "${PUBLIC_HTTP_PORT:-8080}:8080"
+    networks:
+      - edge
+    depends_on:
+      api:
+        condition: service_healthy
+    healthcheck:
+      test:
+        ["CMD", "wget", "--quiet", "--spider", "http://127.0.0.1:8080/healthz"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    restart: unless-stopped
+
+  # Ingestion discovers bounded PNW pages/PDFs, extracts structured evidence, qualifies sources,
+  # creates embeddings, and writes public-corpus data. It runs only when requested:
+  #   docker compose --env-file deploy/.env -f deploy/compose.yaml --profile operations run --rm ingest
+  ingest:
+    <<: *backend-service
+    command: ["python", "-m", "app.cli", "sources", "refresh-due"]
+    profiles: ["operations"]
+    environment:
+      POSTGRES_PASSWORD_FILE: /run/secrets/postgres_governance_password
+    secrets:
+      - postgres_governance_password
+    depends_on:
+      db:
+        condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
+    volumes:
+      # Downloaded public artifacts survive a one-shot ingestion container.
+      - source_data:/data/sources
+      - type: bind
+        source: ${EMBEDDING_MODEL_HOST_DIR:-./models/embeddings}
+        target: /models/embeddings
+        read_only: true
+    networks:
+      # Ingestion needs outbound HTTPS to approved PNW hosts and backend access to PostgreSQL.
+      - edge
+      - backend
+    restart: "no"
+
+  # llama.cpp is an optional local alternative to Gemini. Put a verified GGUF file in
+  # deploy/models/local and start it with `--profile local`. Its cache and request logging options
+  # prevent prompt material from being intentionally retained between requests.
+  inference:
+    image: ghcr.io/ggml-org/llama.cpp:server-b9265
+    profiles: ["local"]
+    user: "65532:65532"
+    read_only: true
+    init: true
+    tmpfs:
+      - /tmp:size=128m,mode=1777,noexec,nosuid,nodev
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    ulimits:
+      core:
+        soft: 0
+        hard: 0
+    command:
+      - --model
+      - ${LOCAL_INFERENCE_MODEL_PATH:-/models/qwen3-4b-q4_k_m.gguf}
+      - --host
+      - 0.0.0.0
+      - --port
+      - "8080"
+      - --n-predict
+      - ${GEMINI_MAX_OUTPUT_TOKENS:-512}
+      - --no-cache-prompt
+      - --cache-ram
+      - "0"
+      - --ctx-checkpoints
+      - "0"
+      - --no-cache-idle-slots
+      # llama.cpp requires a slot-save path before it enables the erase action. The directory is
+      # the container's temporary in-memory /tmp mount; the API only invokes erase, never save.
+      - --slot-save-path
+      - /tmp
+      # The adapter assigns slot 0 exclusively, so keep the server and adapter counts identical.
+      - --parallel
+      - "1"
+      - --log-disable
+    volumes:
+      - type: bind
+        source: ${LOCAL_MODEL_HOST_DIR:-./models/local}
+        target: /models
+        read_only: true
+    networks:
+      - backend
+    healthcheck:
+      test:
+        ["CMD", "curl", "--fail", "--silent", "http://127.0.0.1:8080/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 12
+      start_period: 180s
+    restart: unless-stopped
+
+# Compose mounts each source file at `/run/secrets/<target>` inside only the services that list it.
+# The `${...}` variables contain file paths, not secret values, so they are safe in deploy/.env.
+secrets:
+  postgres_runtime_password:
+    file: ${POSTGRES_RUNTIME_PASSWORD_HOST_FILE:-./secrets/postgres_runtime_password}
+  postgres_migration_password:
+    file: ${POSTGRES_MIGRATION_PASSWORD_HOST_FILE:-./secrets/postgres_migration_password}
+  postgres_governance_password:
+    file: ${POSTGRES_GOVERNANCE_PASSWORD_HOST_FILE:-./secrets/postgres_governance_password}
+  gemini_api_key:
+    file: ${GEMINI_API_KEY_HOST_FILE:-./secrets/gemini_api_key}
+
+networks:
+  # The edge network connects the public proxy to FastAPI and gives API/ingestion outbound access.
+  # No API, ingestion, database, or inference port is published to the host.
+  edge:
+    driver: bridge
+  # `internal: true` prevents direct internet access from database and local-model containers.
+  backend:
+    driver: bridge
+    internal: true
+
+# Named volumes are managed by Docker. `docker compose down` keeps them; adding `--volumes` deletes
+# them. Do not use `--volumes` on a deployment whose database/corpus has not been backed up.
+volumes:
+  postgres_data:
+  source_data:

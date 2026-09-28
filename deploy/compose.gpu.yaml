@@ -1,0 +1,14 @@
+# Optional NVIDIA GPU override for local llama.cpp inference.
+# Combine it with the base file and enable the `local` profile:
+#   docker compose --env-file deploy/.env -f deploy/compose.yaml \
+#     -f deploy/compose.gpu.yaml --profile local up inference
+services:
+  inference:
+    image: ghcr.io/ggml-org/llama.cpp:server-cuda-b9265
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: ["gpu"]
