@@ -30,16 +30,16 @@
 
 ## Phase 3: RAG Corpus Preparation
 
-- [ ] T014 Implement bounded source fetching, content-type validation, canonical URL handling, and content hashing in `backend/ingestion/fetch_sources.py`.
-- [ ] T015 [P] Implement HTML extraction that preserves headings, lists, tables, links, and update metadata while excluding navigation and decorative content in `backend/ingestion/extract_content.py`.
-- [ ] T016 [P] Implement PDF/document extraction with page references and malformed-document reporting in `backend/ingestion/extract_content.py`.
-- [ ] T017 Implement structure-preserving chunking that keeps table rows, prerequisites, dates, conditions, and procedural steps together in `backend/ingestion/chunk_content.py`.
-- [ ] T018 Implement source status and freshness review rules, including `active`, `archived`, and `disputed` handling, in `backend/app/services/source_governance.py`.
-- [ ] T019 Implement idempotent embedding generation and versioned pgvector writes for validated chunks in `backend/ingestion/embed_and_index.py`.
-- [ ] T020 Implement corpus integrity and representative retrieval validation for citation coverage, scope filtering, no-match behavior, and conflicting sources in `backend/ingestion/validate_corpus.py`.
-- [ ] T021 Add the corpus build command and failure/rollback behavior so incomplete builds cannot become the active retrieval target in `backend/ingestion/`.
-- [ ] T022 [P] Add ingestion tests using representative HTML, tables, PDFs, changed content, unavailable sources, and conflicting source metadata in `backend/tests/ingestion/`.
-- [ ] T023 [P] Add retrieval fixture data covering parking, programs, registration, plans of study, prerequisites, deadlines, academic integrity, accessibility, and student services in `backend/tests/fixtures/`.
+- [x] T014 Implement bounded source fetching, content-type validation, canonical URL handling, and content hashing in `backend/ingestion/fetch_sources.py`.
+- [x] T015 [P] Implement HTML extraction that preserves headings, lists, tables, links, and update metadata while excluding navigation and decorative content in `backend/ingestion/extract_content.py`.
+- [x] T016 [P] Implement PDF/document extraction with page references and malformed-document reporting in `backend/ingestion/extract_content.py`.
+- [x] T017 Implement structure-preserving chunking that keeps table rows, prerequisites, dates, conditions, and procedural steps together in `backend/ingestion/chunk_content.py`.
+- [x] T018 Implement source status and freshness review rules, including `active`, `archived`, and `disputed` handling, in `backend/app/services/source_governance.py`.
+- [x] T019 Implement idempotent embedding generation and versioned pgvector writes for validated chunks in `backend/ingestion/embed_and_index.py`.
+- [x] T020 Implement corpus integrity and representative retrieval validation for citation coverage, scope filtering, no-match behavior, and conflicting sources in `backend/ingestion/validate_corpus.py`.
+- [x] T021 Add the corpus build command and failure/rollback behavior so incomplete builds cannot become the active retrieval target in `backend/ingestion/`.
+- [x] T022 [P] Add ingestion tests using representative HTML, tables, PDFs, changed content, unavailable sources, and conflicting source metadata in `backend/tests/ingestion/`.
+- [x] T023 [P] Add retrieval fixture data covering parking, programs, registration, plans of study, prerequisites, deadlines, academic integrity, accessibility, and student services in `backend/tests/fixtures/`.
 
 ## Phase 4: Retrieval and Policy Foundation
 

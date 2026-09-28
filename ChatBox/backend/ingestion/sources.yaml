@@ -4,6 +4,7 @@ defaults:
   allowed_hosts:
     - pnw.edu
     - www.pnw.edu
+    - catalog.pnw.edu
   require_https: true
   review:
     required_before_activation: true
