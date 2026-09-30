@@ -1,9 +1,31 @@
+from .answer_service import AnswerService, DraftSupportError, draft_answer, validate_answer_support
+from .citation_service import CitationService, DEFAULT_MAX_CITATIONS, assemble_citations
 from .embedding_service import (
     EmbeddingDimensionError,
     EmbeddingProviderConfig,
     EmbeddingProviderError,
     OllamaEmbeddingProvider,
     get_embedding_provider,
+)
+from .escalation_service import (
+    EscalationDestination,
+    EscalationResult,
+    EscalationService,
+    build_safe_limitation_message,
+    lookup_escalation_destination,
+    resolve_escalation_destination,
+    safe_limitation_message,
+)
+from .retrieval_service import (
+    DEFAULT_ARCHIVE_WINDOW_DAYS,
+    DEFAULT_FRESHNESS_WINDOW_DAYS,
+    RetrievalHit,
+    RetrievalService,
+    filter_active_retrieval_candidates,
+    normalize_query,
+    normalize_scope_value,
+    retrieve_relevant_chunks,
+    search_relevant_chunks,
 )
 from .source_governance import (
     SourceGovernanceService,
@@ -13,13 +35,36 @@ from .source_governance import (
 )
 
 __all__ = [
+    "AnswerService",
+    "CitationService",
+    "DEFAULT_ARCHIVE_WINDOW_DAYS",
+    "DEFAULT_FRESHNESS_WINDOW_DAYS",
+    "DEFAULT_MAX_CITATIONS",
+    "DraftSupportError",
     "EmbeddingDimensionError",
     "EmbeddingProviderConfig",
     "EmbeddingProviderError",
+    "EscalationDestination",
+    "EscalationResult",
+    "EscalationService",
     "OllamaEmbeddingProvider",
+    "RetrievalHit",
+    "RetrievalService",
     "SourceGovernanceService",
     "SourceReviewResult",
+    "assemble_citations",
+    "build_safe_limitation_message",
+    "draft_answer",
+    "filter_active_retrieval_candidates",
     "get_embedding_provider",
+    "lookup_escalation_destination",
+    "normalize_query",
+    "resolve_escalation_destination",
+    "safe_limitation_message",
+    "normalize_scope_value",
+    "retrieve_relevant_chunks",
     "review_source",
     "review_source_status",
+    "search_relevant_chunks",
+    "validate_answer_support",
 ]

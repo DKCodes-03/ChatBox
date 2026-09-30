@@ -37,19 +37,19 @@
 - [x] T018 Implement source status and freshness review rules, including `active`, `archived`, and `disputed` handling, in `backend/app/services/source_governance.py`.
 - [x] T019 Implement idempotent embedding generation and versioned pgvector writes for validated chunks in `backend/ingestion/embed_and_index.py`.
 - [x] T020 Implement corpus integrity and representative retrieval validation for citation coverage, scope filtering, no-match behavior, and conflicting sources in `backend/ingestion/validate_corpus.py`.
-- [x] T021 Add the corpus build command and failure/rollback behavior so incomplete builds cannot become the active retrieval target in `backend/ingestion/`.
+- [x] T021 Implement `python -m ingestion.build_corpus` to fetch the complete approved manifest, extract and chunk sources, write embeddings to pgvector, and promote only complete builds; failed builds are recorded without replacing the active corpus in `backend/ingestion/build_corpus.py`.
 - [x] T022 [P] Add ingestion tests using representative HTML, tables, PDFs, changed content, unavailable sources, and conflicting source metadata in `backend/tests/ingestion/`.
 - [x] T023 [P] Add retrieval fixture data covering parking, programs, registration, plans of study, prerequisites, deadlines, academic integrity, accessibility, and student services in `backend/tests/fixtures/`.
 
 ## Phase 4: Retrieval and Policy Foundation
 
-- [ ] T024 Implement query normalization, embedding lookup, pgvector similarity search, and active corpus filtering by campus, term, status, and freshness in `backend/app/services/retrieval_service.py`.
-- [ ] T025 Implement intent and scope extraction for campus, academic term, program, course, student level, and personal-record requests in `backend/app/services/policy_service.py`.
-- [ ] T026 Implement evidence sufficiency, stale-source, and materially conflicting-source checks before answer generation in `backend/app/services/policy_service.py`.
-- [ ] T027 Implement citation assembly that links every supported answer to direct source URLs and evidence snippets in `backend/app/services/citation_service.py`.
-- [ ] T028 Implement Ollama answer drafting with an evidence-only prompt boundary and draft support validation in `backend/app/services/answer_service.py`.
-- [ ] T029 [P] Implement approved escalation destination lookup and safe limitation messages in `backend/app/services/escalation_service.py`.
-- [ ] T030 [P] Add unit tests for retrieval filters, evidence sufficiency, prompt boundaries, citation requirements, and safe-failure classification in `backend/tests/unit/`.
+- [x] T024 Implement query normalization, embedding lookup, pgvector similarity search, and active corpus filtering by campus, term, status, and freshness in `backend/app/services/retrieval_service.py`.
+- [x] T025 Implement intent and scope extraction for campus, academic term, program, course, student level, and personal-record requests in `backend/app/services/policy_service.py`.
+- [x] T026 Implement evidence sufficiency, stale-source, and materially conflicting-source checks before answer generation in `backend/app/services/policy_service.py`.
+- [x] T027 Implement citation assembly that links every supported answer to direct source URLs and evidence snippets in `backend/app/services/citation_service.py`.
+- [x] T028 Implement Ollama answer drafting with an evidence-only prompt boundary and draft support validation in `backend/app/services/answer_service.py`.
+- [x] T029 [P] Implement approved escalation destination lookup and safe limitation messages in `backend/app/services/escalation_service.py`.
+- [x] T030 [P] Add unit tests for retrieval filters, evidence sufficiency, prompt boundaries, citation requirements, and safe-failure classification in `backend/tests/unit/`.
 
 ## Phase 5: User Story 1 - Grounded University Answers (Priority: P1)
 

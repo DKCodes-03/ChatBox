@@ -2,11 +2,13 @@ from __future__ import annotations
 
 import re
 from dataclasses import dataclass
+from io import BytesIO
 from typing import Literal
 from urllib.parse import urljoin, urlsplit
 
 from bs4 import BeautifulSoup, Tag
 from bs4.element import NavigableString
+from pypdf import PdfReader
 
 ElementKind = Literal["heading", "paragraph", "list_item", "table_caption", "table_row"]
 
@@ -212,7 +214,9 @@ def _decode_document_text(content: bytes, content_type: str) -> str:
     return content.decode("utf-8", errors="replace")
 
 
-def _text_to_elements(text: str, *, source_url: str) -> tuple[ExtractedElement, ...]:
+def _text_to_elements(
+    text: str, *, source_url: str, page_ref: str | None = None
+) -> tuple[ExtractedElement, ...]:
     paragraphs: list[str] = []
     for block in re.split(r"\n\s*\n+", text):
         cleaned = _clean_text(block)
@@ -222,14 +226,14 @@ def _text_to_elements(text: str, *, source_url: str) -> tuple[ExtractedElement, 
 
     elements: list[ExtractedElement] = []
     for paragraph in paragraphs:
-        page_ref = _extract_page_ref(paragraph)
+        element_page_ref = _extract_page_ref(paragraph) or page_ref
         if paragraph.count(" ") <= 2 and len(paragraph) < 60:
             elements.append(
                 ExtractedElement(
                     kind="heading",
                     text=paragraph,
                     heading_level=1,
-                    page_ref=page_ref,
+                    page_ref=element_page_ref,
                     links=(),
                 )
             )
@@ -238,7 +242,7 @@ def _text_to_elements(text: str, *, source_url: str) -> tuple[ExtractedElement, 
             ExtractedElement(
                 kind="paragraph",
                 text=paragraph,
-                page_ref=page_ref,
+                page_ref=element_page_ref,
                 links=(),
             )
         )
@@ -253,39 +257,56 @@ def extract_document(
 ) -> ExtractedContent:
     """Extract plain-text and PDF-style document content while reporting malformed sources."""
     normalized_type = content_type.split(";", 1)[0].strip().lower()
-    issues: list[ExtractionIssue] = []
 
     if normalized_type == "text/html":
         return extract_html(content, source_url)
 
-    text = _decode_document_text(content, normalized_type)
     if normalized_type == "application/pdf":
-        if not text.lstrip().startswith("%PDF"):
-            issues.append(
-                ExtractionIssue(
-                    code="malformed_document",
-                    message="PDF content is missing the expected %PDF header.",
+        try:
+            reader = PdfReader(BytesIO(content), strict=False)
+            elements = tuple(
+                element
+                for page_number, page in enumerate(reader.pages, start=1)
+                for element in _text_to_elements(
+                    page.extract_text() or "",
+                    source_url=source_url,
+                    page_ref=str(page_number),
                 )
             )
-        elif not any(
-            marker in text.lower()
-            for marker in ("%EOF", "xref", "trailer", "startxref", "obj")
-        ):
-            issues.append(
-                ExtractionIssue(
-                    code="malformed_document",
-                    message="The PDF is missing expected structural markers and may be malformed.",
-                )
+        except Exception as error:  # noqa: BLE001
+            return ExtractedContent(
+                title=None,
+                update_metadata=(),
+                elements=(),
+                links=(),
+                issues=(
+                    ExtractionIssue(
+                        code="malformed_document",
+                        message=f"PDF text extraction failed: {error}",
+                    ),
+                ),
             )
 
-    elements = _text_to_elements(text, source_url=source_url)
-    if not elements and normalized_type == "application/pdf":
-        issues.append(
+        title = next(
+            (element.text for element in elements if element.kind == "heading"),
+            None,
+        )
+        issues = () if elements else (
             ExtractionIssue(
                 code="malformed_document",
-                message="The uploaded document could not be decoded into readable text.",
-            )
+                message="The PDF contains no extractable text.",
+            ),
         )
+        return ExtractedContent(
+            title=title,
+            update_metadata=(),
+            elements=elements,
+            links=(),
+            issues=issues,
+        )
+
+    text = _decode_document_text(content, normalized_type)
+    elements = _text_to_elements(text, source_url=source_url)
 
     title = None
     for element in elements:
@@ -298,7 +319,7 @@ def extract_document(
         update_metadata=(),
         elements=elements,
         links=(),
-        issues=tuple(issues),
+        issues=(),
     )
 
 

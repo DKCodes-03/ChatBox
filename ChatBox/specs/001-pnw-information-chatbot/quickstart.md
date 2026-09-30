@@ -44,30 +44,34 @@ container restarts. No paid API key is required.
 
 ## Prepare the RAG vector database
 
-The ingestion commands below are planned application entrypoints. They become
-available after the ingestion implementation tasks are completed.
-
-Before testing supported answers, build and validate the initial corpus. The
-ingestion job reads the curated source list, fetches official PNW webpages and
-linked documents, extracts structure-preserving chunks, generates local
-embeddings, and promotes the build only after retrieval checks pass.
+Add or update source entries in `backend/ingestion/sources.yaml`. A source is
+ingested only when `review_status` is `active`, `reviewer` is set, and
+`last_reviewed` is within its configured review cadence. Only explicit URLs in
+the manifest are fetched; `follow_links` does not currently crawl linked pages.
+The manifest's host allowlist also applies to redirects.
 
 ```bash
-docker compose run --rm backend python -m ingestion.embed_and_index
-docker compose run --rm backend python -m ingestion.validate_corpus
+docker compose up -d db ollama
+docker compose exec ollama ollama pull nomic-embed-text
+docker compose exec -T db psql -U pnw_chatbot -d pnw_chatbot < backend/app/db/migrations/001_initial_schema.sql
+docker compose run --rm backend python -m ingestion.build_corpus
 ```
 
-Expected result:
-- Every active source has a content fingerprint and at least one validated
-  chunk.
-- All indexed vectors use the configured embedding model and dimensions.
-- A corpus version is marked `promoted` only after representative retrieval
-  and citation checks pass.
+The schema migration is required once for a fresh database. The command skips
+sources still pending review, fetches the remaining approved webpages and PDFs,
+extracts and chunks their text, embeds each chunk with Ollama, and stores
+documents and vectors in PostgreSQL/pgvector. It promotes the new corpus only
+after every source succeeds; on failure, the candidate is marked failed and the
+previous promoted corpus remains active. PDF files without extractable text,
+including scanned PDFs, must be OCR-processed separately before ingestion.
 
-If a source is unavailable, malformed, stale, or conflicting, the build keeps
-it out of the active corpus and reports it for review. Re-running the build is
-safe: unchanged sources are skipped, changed sources receive new chunks, and
-the previous promoted corpus remains available until validation succeeds.
+For a local backend environment, run this from `backend/`:
+
+```bash
+uv run python -m ingestion.build_corpus
+```
+
+Use `--manifest PATH` to select a different YAML manifest.
 
 The application must not require a paid API key. If the local model is
 unavailable, the backend must return a safe error or escalation response rather

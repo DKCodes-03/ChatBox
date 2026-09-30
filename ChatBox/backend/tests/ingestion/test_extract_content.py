@@ -6,13 +6,17 @@ def test_extract_document_handles_plain_text_and_reports_malformed_content() -> 
 
     extracted = extract_document(text, "https://www.pnw.edu/policies", content_type="text/plain")
 
-    assert [element.kind for element in extracted.elements if element.kind in {"heading", "paragraph"}] == [
+    assert [
+        element.kind for element in extracted.elements if element.kind in {"heading", "paragraph"}
+    ] == [
         "heading",
         "paragraph",
     ]
     assert extracted.issues == ()
 
-    malformed = extract_document(b"%PDF-1.4\n<<broken>>", "https://www.pnw.edu/bad.pdf", content_type="application/pdf")
+    malformed = extract_document(
+        b"%PDF-1.4\n<<broken>>", "https://www.pnw.edu/bad.pdf", content_type="application/pdf"
+    )
     assert malformed.issues
     assert malformed.issues[0].code == "malformed_document"
 
@@ -124,11 +128,11 @@ def test_extract_html_keeps_conflicting_metadata_and_preserves_table_rows() -> N
     extracted = extract_html(html, "https://www.pnw.edu/registration")
 
     assert extracted.title == "Academic calendar"
-    assert {key for key, _ in extracted.update_metadata} == {"article:modified_time", "last-modified"}
-    assert {
-        (key, value)
-        for key, value in extracted.update_metadata
-    } == {
+    assert {key for key, _ in extracted.update_metadata} == {
+        "article:modified_time",
+        "last-modified",
+    }
+    assert {(key, value) for key, value in extracted.update_metadata} == {
         ("article:modified_time", "2026-08-15T12:00:00Z"),
         ("last-modified", "2026-09-01T12:00:00Z"),
     }
@@ -143,15 +147,21 @@ def test_extract_document_handles_valid_pdf_and_reports_malformed_content() -> N
     valid = (
         b"%PDF-1.4\n1 0 obj\n<< /Type /Catalog /Pages 2 0 R >>\nendobj\n"
         b"2 0 obj\n<< /Type /Pages /Kids [3 0 R] /Count 1 >>\nendobj\n"
-        b"3 0 obj\n<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Contents 4 0 R >>\nendobj\n"
+        b"3 0 obj\n<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Resources << /Font << /F1 5 0 R >> >> /Contents 4 0 R >>\nendobj\n"
         b"4 0 obj\n<< /Length 55 >>\nstream\nBT\n/F1 12 Tf\n72 720 Td\n(Academic calendar) Tj\nET\nendstream\nendobj\n"
-        b"xref\n0 5\n0000000000 65535 f \n0000000010 00000 n \n0000000065 00000 n \n0000000123 00000 n \n0000000456 00000 n \ntrailer\n<< /Root 1 0 R /Size 5 >>\nstartxref\n520\n%%EOF"
+        b"5 0 obj\n<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica /Encoding /WinAnsiEncoding >>\nendobj\n"
+        b"xref\n0 6\n0000000000 65535 f \n0000000010 00000 n \n0000000065 00000 n \n0000000123 00000 n \n0000000456 00000 n \n0000000500 00000 n \ntrailer\n<< /Root 1 0 R /Size 6 >>\nstartxref\n520\n%%EOF"
     )
-    extracted = extract_document(valid, "https://www.pnw.edu/calendar.pdf", content_type="application/pdf")
+    extracted = extract_document(
+        valid, "https://www.pnw.edu/calendar.pdf", content_type="application/pdf"
+    )
 
     assert extracted.issues == ()
     assert any("Academic calendar" in element.text for element in extracted.elements)
+    assert all(element.page_ref == "1" for element in extracted.elements)
 
-    malformed = extract_document(b"%PDF-1.4\n<<broken>>", "https://www.pnw.edu/bad.pdf", content_type="application/pdf")
+    malformed = extract_document(
+        b"%PDF-1.4\n<<broken>>", "https://www.pnw.edu/bad.pdf", content_type="application/pdf"
+    )
     assert malformed.issues
     assert malformed.issues[0].code == "malformed_document"

@@ -12,9 +12,9 @@ WORKDIR /app
 COPY requirements.txt ./
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy the backend package into the image. The ingestion package will be added
-# by the later RAG implementation tasks.
+# Copy the backend application and ingestion command into the image.
 COPY app ./app
+COPY ingestion ./ingestion
 
 # The FastAPI entrypoint will be added in a later implementation task.
 EXPOSE 8000
