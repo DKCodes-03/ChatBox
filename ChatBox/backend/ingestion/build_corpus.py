@@ -13,7 +13,7 @@ from uuid import uuid4
 import httpx
 import yaml
 from sqlalchemy import select
-from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
 from app.core.config import get_settings
 from app.db.session import AsyncSessionLocal
@@ -175,16 +175,31 @@ class PreparedSource:
     chunks: list[Chunk]
 
 
-async def _prepare_sources(
+@dataclass(frozen=True, slots=True)
+class FetchedManifestSource:
+    manifest: dict[str, Any]
+    fetched: FetchedSource
+
+
+async def _fetch_sources(
     sources: list[dict[str, Any]], fetcher: SourceFetcher
-) -> list[PreparedSource]:
-    prepared: list[PreparedSource] = []
+) -> list[FetchedManifestSource]:
+    fetched_sources: list[FetchedManifestSource] = []
     seen_urls: set[str] = set()
     for source in sources:
         fetched = await fetcher.fetch(source["url"])
         if fetched.canonical_url in seen_urls:
             raise ValueError(f"multiple manifest entries resolve to {fetched.canonical_url}")
         seen_urls.add(fetched.canonical_url)
+        fetched_sources.append(FetchedManifestSource(source, fetched))
+    return fetched_sources
+
+
+def _prepare_sources(fetched_sources: list[FetchedManifestSource]) -> list[PreparedSource]:
+    prepared: list[PreparedSource] = []
+    for entry in fetched_sources:
+        source = entry.manifest
+        fetched = entry.fetched
         if fetched.content_type not in {"text/html", "application/pdf", "text/plain"}:
             raise ValueError(
                 f"source {source['id']!r} has unsupported extraction type "
@@ -204,6 +219,73 @@ async def _prepare_sources(
             raise ValueError(f"source {source['id']!r} produced no non-empty chunks")
         prepared.append(PreparedSource(source, fetched, extracted, chunks))
     return prepared
+
+
+async def _active_corpus_matches_sources(
+    session: AsyncSession,
+    sources: list[FetchedManifestSource],
+    *,
+    embedding_model: str,
+    embedding_dimensions: int,
+) -> bool:
+    build_result = await session.execute(
+        select(CorpusBuild).where(CorpusBuild.status == CorpusBuildStatus.PROMOTED)
+    )
+    active_build = build_result.scalar_one_or_none()
+    if (
+        active_build is None
+        or active_build.embedding_model != embedding_model
+        or active_build.embedding_dimensions != embedding_dimensions
+        or active_build.source_count != len(sources)
+    ):
+        return False
+
+    documents_result = await session.execute(
+        select(SourceDocument).where(SourceDocument.corpus_version == active_build.version)
+    )
+    documents = {document.url: document for document in documents_result.scalars().all()}
+    if len(documents) != len(sources):
+        return False
+
+    chunks_result = await session.execute(
+        select(SourceChunk).where(SourceChunk.corpus_version == active_build.version)
+    )
+    chunks = chunks_result.scalars().all()
+    if len(chunks) != active_build.chunk_count or not chunks:
+        return False
+    if any(
+        chunk.embedding is None
+        or chunk.embedding_model != embedding_model
+        or chunk.embedding_dimensions != embedding_dimensions
+        for chunk in chunks
+    ):
+        return False
+
+    for entry in sources:
+        source = entry.manifest
+        document = documents.get(entry.fetched.canonical_url)
+        if document is None:
+            return False
+        try:
+            expected_type = (
+                SourceType.PDF
+                if entry.fetched.content_type == "application/pdf"
+                else SourceType(source["source_type"])
+            )
+        except ValueError:
+            return False
+        if (
+            document.content_hash != entry.fetched.content_hash
+            or document.title != source["title"]
+            or document.source_type is not expected_type
+            or document.campus_scope != source.get("campus_scope")
+            or document.academic_term != source.get("academic_term")
+            or document.reviewed_by != source["reviewer"].strip()
+            or document.status is not SourceStatus.ACTIVE
+            or document.ingestion_status is not IngestionStatus.VALIDATED
+        ):
+            return False
+    return True
 
 
 def _updated_date(extracted: ExtractedContent, source: dict[str, Any]) -> date | None:
@@ -300,7 +382,11 @@ async def _persist_and_embed(
 
 async def run_corpus_build(
     manifest_path: Path = DEFAULT_MANIFEST_PATH,
-) -> tuple[CorpusBuild, list[str]]:
+    *,
+    source_client: httpx.AsyncClient | None = None,
+    db_session_factory: async_sessionmaker[AsyncSession] | None = None,
+    embedding_provider: OllamaEmbeddingProvider | None = None,
+) -> tuple[CorpusBuild | None, list[str]]:
     manifest = load_manifest(manifest_path)
     defaults = manifest["defaults"]
     review_defaults = defaults.get("review", {})
@@ -318,20 +404,34 @@ async def run_corpus_build(
     if not isinstance(allowed_content_types, list):
         raise TypeError("allowed_content_types must be a list")
 
-    provider = get_embedding_provider()
-    version = build_corpus_version(f"corpus-{uuid4().hex[:8]}")
-    build: CorpusBuild
-    failure: Exception | None = None
     settings = get_settings()
+    session_factory = db_session_factory or AsyncSessionLocal
+    client_context = source_client or httpx.AsyncClient()
 
-    async with httpx.AsyncClient() as client:
+    async with client_context as client:
         fetcher = SourceFetcher(
             client,
             allowed_hosts=allowed_hosts,
             allowed_content_types=allowed_content_types,
         )
+        fetched_sources = await _fetch_sources(sources, fetcher)
+        async with session_factory() as session:
+            if await _active_corpus_matches_sources(
+                session,
+                fetched_sources,
+                embedding_model=settings.embedding_model_name,
+                embedding_dimensions=settings.embedding_dimensions,
+            ):
+                return None, skipped
+
+        prepared = _prepare_sources(fetched_sources)
+        provider = embedding_provider or get_embedding_provider()
+        version = build_corpus_version(f"corpus-{uuid4().hex[:8]}")
+        build: CorpusBuild
+        failure: Exception | None = None
+
         try:
-            async with AsyncSessionLocal() as session, session.begin():
+            async with session_factory() as session, session.begin():
                 build = CorpusBuild(
                     version=version,
                     embedding_model=provider.config.model_name,
@@ -345,7 +445,6 @@ async def run_corpus_build(
                 await session.flush()
                 try:
                     async with session.begin_nested():
-                        prepared = await _prepare_sources(sources, fetcher)
                         chunks = await _persist_and_embed(
                             session,
                             prepared,
@@ -370,6 +469,8 @@ async def run_corpus_build(
                         await CorpusService(session).promote(version)
                 except Exception as error:  # noqa: BLE001
                     failure = error
+                    build.source_count = 0
+                    build.chunk_count = 0
                     mark_build_failed(
                         build,
                         reason=f"{type(error).__name__}: {error}",
@@ -378,8 +479,8 @@ async def run_corpus_build(
         finally:
             await provider.aclose()
 
-    if failure is not None:
-        raise RuntimeError(f"corpus build {version!r} failed: {failure}") from failure
+        if failure is not None:
+            raise RuntimeError(f"corpus build {version!r} failed: {failure}") from failure
     return build, skipped
 
 
@@ -399,6 +500,12 @@ def main(argv: list[str] | None = None) -> int:
     except Exception as error:  # noqa: BLE001
         print(f"Corpus build failed: {error}", file=sys.stderr)
         return 1
+
+    if build is None:
+        print("Data is up-to-date; to add new data, update sources.yaml.")
+        if skipped:
+            print(f"Skipped sources pending approval: {', '.join(skipped)}")
+        return 0
 
     print(
         f"Promoted corpus {build.version}: "

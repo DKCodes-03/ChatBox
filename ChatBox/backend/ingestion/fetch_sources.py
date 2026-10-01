@@ -81,8 +81,6 @@ def canonicalize_url(url: str, *, allowed_hosts: Collection[str]) -> str:
         raise UnsafeSourceURLError(f"URL uses a disallowed port: {url}")
 
     path = parsed.path or "/"
-    if path != "/":
-        path = path.rstrip("/")
     return urlunsplit(("https", host.lower().rstrip("."), path, parsed.query, ""))
 
 

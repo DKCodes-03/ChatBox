@@ -5,7 +5,17 @@ from datetime import date, datetime
 from uuid import UUID
 
 from pgvector.sqlalchemy import Vector
-from sqlalchemy import Boolean, CheckConstraint, Enum, Float, ForeignKey, Integer, String, Text
+from sqlalchemy import (
+    Boolean,
+    CheckConstraint,
+    DateTime,
+    Enum,
+    Float,
+    ForeignKey,
+    Integer,
+    String,
+    Text,
+)
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from .base import Base, CreatedAt, UUIDPrimaryKey
@@ -69,8 +79,8 @@ class CorpusBuild(Base):
         ),
         nullable=False,
     )
-    started_at: Mapped[datetime] = mapped_column(nullable=False)
-    completed_at: Mapped[datetime | None] = mapped_column(nullable=True)
+    started_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    completed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     validation_summary: Mapped[str | None] = mapped_column(Text, nullable=True)
 
     source_documents: Mapped[list[SourceDocument]] = relationship(back_populates="corpus_build")

@@ -6,6 +6,7 @@ from uuid import uuid4
 import pytest
 
 from app.models import CorpusBuild, CorpusBuildStatus
+from ingestion import build_corpus
 from ingestion.build_corpus import select_approved_sources, validate_build_requirements
 
 
@@ -64,3 +65,15 @@ def test_select_approved_sources_rejects_overdue_review() -> None:
 
     with pytest.raises(ValueError, match="reviewed within its 30-day cadence"):
         select_approved_sources([source], {"default_cadence_days": 30}, today=today)
+
+
+def test_main_reports_when_data_is_up_to_date(monkeypatch: pytest.MonkeyPatch, capsys) -> None:
+    async def unchanged_build(_manifest_path):
+        return None, []
+
+    monkeypatch.setattr(build_corpus, "run_corpus_build", unchanged_build)
+
+    assert build_corpus.main([]) == 0
+    assert capsys.readouterr().out.strip() == (
+        "Data is up-to-date; to add new data, update sources.yaml."
+    )

@@ -21,14 +21,14 @@ defaults:
 sources:
   - id: pnw-academic-calendar
     title: PNW Academic Calendar
-    url: https://www.pnw.edu/academic-calendar/
+    url: https://www.pnw.edu/events/category/university-calendar/academic-calendar/
     source_type: webpage
     campus_scope: both
     academic_term: current
     owner: registrar
     reviewer: registrar-designated-reviewer
-    review_status: pending_initial_review
-    last_reviewed: null
+    review_status: approved
+    last_reviewed: "2026-09-30"
     review_cadence_days: 30
     follow_links: true
 
@@ -40,8 +40,8 @@ sources:
     academic_term: current
     owner: registrar
     reviewer: registrar-designated-reviewer
-    review_status: pending_initial_review
-    last_reviewed: null
+    review_status: approved
+    last_reviewed: "2026-09-30"
     review_cadence_days: 30
     follow_links: true
 
@@ -53,59 +53,59 @@ sources:
     academic_term: current
     owner: academic-affairs
     reviewer: academic-affairs-designated-reviewer
-    review_status: pending_initial_review
-    last_reviewed: null
+    review_status: approved
+    last_reviewed: "2026-09-30"
     review_cadence_days: 30
     follow_links: true
 
   - id: pnw-policies
     title: PNW Policies
-    url: https://www.pnw.edu/policies/
+    url: https://www.pnw.edu/academic-and-administrative-offices/policies/
     source_type: policy
     campus_scope: both
     academic_term: current
     owner: academic-affairs
     reviewer: policy-designated-reviewer
-    review_status: pending_initial_review
-    last_reviewed: null
+    review_status: approved
+    last_reviewed: "2026-09-30"
     review_cadence_days: 30
     follow_links: true
 
   - id: pnw-parking
-    title: PNW Parking and Transportation
-    url: https://www.pnw.edu/parking/
+    title: PNW Parking and Fees
+    url: https://www.pnw.edu/getting-to-pnw/parking-and-fees/
     source_type: webpage
     campus_scope: both
     academic_term: current
     owner: parking-and-transportation
     reviewer: campus-services-designated-reviewer
-    review_status: pending_initial_review
-    last_reviewed: null
+    review_status: approved
+    last_reviewed: "2026-09-30"
     review_cadence_days: 30
     follow_links: true
 
   - id: pnw-accessibility
     title: PNW Accessibility
-    url: https://www.pnw.edu/accessibility/
+    url: https://www.pnw.edu/pnw-accessibility-center/
     source_type: webpage
     campus_scope: both
     academic_term: current
     owner: accessibility-services
     reviewer: accessibility-designated-reviewer
-    review_status: pending_initial_review
-    last_reviewed: null
+    review_status: approved
+    last_reviewed: "2026-09-30"
     review_cadence_days: 30
     follow_links: true
 
   - id: pnw-student-services
-    title: PNW Student Services
-    url: https://www.pnw.edu/student-services/
+    title: PNW Student Resource Guide
+    url: https://www.pnw.edu/academics-research/student-resources/
     source_type: webpage
     campus_scope: both
     academic_term: current
     owner: student-services
     reviewer: student-services-designated-reviewer
-    review_status: pending_initial_review
-    last_reviewed: null
+    review_status: approved
+    last_reviewed: "2026-09-30"
     review_cadence_days: 30
     follow_links: true
