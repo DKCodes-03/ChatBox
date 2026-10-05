@@ -1,0 +1,71 @@
+{
+  "sources": [
+    {
+      "url": "https://www.pnw.edu/__test__/ingestion/silver-compass/",
+      "title": "Synthetic Silver Compass Procedure Overview",
+      "topics": ["synthetic_linked_procedure"],
+      "allowed_child_hosts": ["www.pnw.edu"]
+    },
+    {
+      "url": "https://www.pnw.edu/__test__/ingestion/silver-compass/details/",
+      "title": "Synthetic Silver Compass Detail Steps",
+      "topics": ["synthetic_linked_procedure"],
+      "allowed_child_hosts": ["www.pnw.edu"]
+    },
+    {
+      "url": "https://www.pnw.edu/__test__/ingestion/silver-compass/form.pdf",
+      "title": "Synthetic Silver Compass PDF Form",
+      "topics": ["synthetic_linked_procedure"],
+      "allowed_child_hosts": ["www.pnw.edu"]
+    },
+    {
+      "url": "https://www.pnw.edu/__test__/ingestion/broken-table/",
+      "title": "Synthetic Broken Copper Schedule",
+      "topics": ["synthetic_malformed_table"],
+      "allowed_child_hosts": ["www.pnw.edu"]
+    },
+    {
+      "url": "https://www.pnw.edu/__test__/ingestion/idempotent-violet/",
+      "title": "Synthetic Idempotent Violet Policy",
+      "topics": ["synthetic_duplicate"],
+      "allowed_child_hosts": ["www.pnw.edu"]
+    },
+    {
+      "url": "https://www.pnw.edu/__test__/ingestion/teal-desk-hammond/",
+      "title": "Synthetic Hammond Teal Desk",
+      "topics": ["synthetic_campus_route"],
+      "allowed_child_hosts": ["www.pnw.edu"]
+    },
+    {
+      "url": "https://www.pnw.edu/__test__/ingestion/teal-desk-westville/",
+      "title": "Synthetic Westville Teal Desk",
+      "topics": ["synthetic_campus_route"],
+      "allowed_child_hosts": ["www.pnw.edu"]
+    },
+    {
+      "url": "https://catalog.pnw.edu/__test__/ingestion/ing-25000/",
+      "title": "ING 25000 Synthetic Ingestion Prerequisites",
+      "topics": ["synthetic_course_prerequisites"],
+      "allowed_child_hosts": ["catalog.pnw.edu"]
+    },
+    {
+      "url": "https://www.pnw.edu/__test__/ingestion/expired-indigo/",
+      "title": "Synthetic Expired Indigo Window",
+      "topics": ["synthetic_stale_policy"],
+      "allowed_child_hosts": ["www.pnw.edu"]
+    },
+    {
+      "url": "https://www.pnw.edu/__test__/ingestion/gold-bell-eight/",
+      "title": "Synthetic Gold Bell Schedule A",
+      "topics": ["synthetic_conflict"],
+      "allowed_child_hosts": ["www.pnw.edu"]
+    },
+    {
+      "url": "https://www.pnw.edu/__test__/ingestion/gold-bell-ten/",
+      "title": "Synthetic Gold Bell Schedule B",
+      "topics": ["synthetic_conflict"],
+      "allowed_child_hosts": ["www.pnw.edu"]
+    }
+  ]
+}
+

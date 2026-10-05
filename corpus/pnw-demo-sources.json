@@ -1,0 +1,22 @@
+{
+  "sources": [
+    {
+      "url": "https://www.pnw.edu/getting-to-pnw/parking-and-fees/regulations-and-enforcement/",
+      "title": "PNW Parking Regulations and Enforcement",
+      "topics": ["parking_regulations"],
+      "allowed_child_hosts": ["www.pnw.edu"]
+    },
+    {
+      "url": "https://www.pnw.edu/registrar/academic-schedule/",
+      "title": "PNW Academic Schedule",
+      "topics": ["academic_schedule"],
+      "allowed_child_hosts": ["www.pnw.edu"]
+    },
+    {
+      "url": "https://www.pnw.edu/dean-of-students/policies/academic-integrity-policy/",
+      "title": "PNW Academic Integrity Policy",
+      "topics": ["academic_integrity"],
+      "allowed_child_hosts": ["www.pnw.edu"]
+    }
+  ]
+}

@@ -1,0 +1,40 @@
+{
+  "sources": [
+    {
+      "url": "https://www.pnw.edu/__test__/us2/stale-amber-deadline/",
+      "title": "Synthetic Stale Amber Kite Deadline",
+      "topics": ["synthetic_stale_deadline"],
+      "allowed_child_hosts": ["www.pnw.edu"]
+    },
+    {
+      "url": "https://www.pnw.edu/__test__/us2/quarantined-contact/",
+      "title": "Synthetic Quarantined Contact Claim",
+      "topics": ["synthetic_quarantined_guidance"],
+      "allowed_child_hosts": ["www.pnw.edu"]
+    },
+    {
+      "url": "https://www.pnw.edu/__test__/us2/unavailable-source/",
+      "title": "Synthetic Unavailable Source",
+      "topics": ["synthetic_source_outage"],
+      "allowed_child_hosts": ["www.pnw.edu"]
+    },
+    {
+      "url": "https://www.pnw.edu/__test__/us2/coral-clock-eight/",
+      "title": "Synthetic Coral Clock Schedule A",
+      "topics": ["synthetic_conflict"],
+      "allowed_child_hosts": ["www.pnw.edu"]
+    },
+    {
+      "url": "https://www.pnw.edu/__test__/us2/coral-clock-ten/",
+      "title": "Synthetic Coral Clock Schedule B",
+      "topics": ["synthetic_conflict"],
+      "allowed_child_hosts": ["www.pnw.edu"]
+    },
+    {
+      "url": "https://www.pnw.edu/__test__/us2/personal-registration-help/",
+      "title": "Synthetic Registration Error Help",
+      "topics": ["synthetic_personal_registration"],
+      "allowed_child_hosts": ["www.pnw.edu"]
+    }
+  ]
+}

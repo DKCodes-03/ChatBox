@@ -45,6 +45,14 @@ class Source(UUIDPrimaryKeyMixin, Base):
     __table_args__ = (
         CheckConstraint("canonical_url ~ '^https://'", name="canonical_url_https"),
         CheckConstraint("length(btrim(title)) > 0", name="title_not_blank"),
+        CheckConstraint(
+            "cardinality(configured_topics) BETWEEN 0 AND 16",
+            name="configured_topics_bounded",
+        ),
+        CheckConstraint(
+            "cardinality(allowed_child_hosts) BETWEEN 0 AND 3",
+            name="allowed_child_hosts_bounded",
+        ),
     )
 
     canonical_url: Mapped[str] = mapped_column(String(2048), nullable=False, unique=True)
@@ -59,6 +67,18 @@ class Source(UUIDPrimaryKeyMixin, Base):
         default=SourceStatus.CANDIDATE,
         server_default=SourceStatus.CANDIDATE.value,
     )
+    configured_topics: Mapped[list[str]] = mapped_column(
+        MutableList.as_mutable(ARRAY(String(128))),
+        nullable=False,
+        default=list,
+        server_default=sql_text("'{}'::varchar[]"),
+    )
+    allowed_child_hosts: Mapped[list[str]] = mapped_column(
+        MutableList.as_mutable(ARRAY(String(255))),
+        nullable=False,
+        default=list,
+        server_default=sql_text("'{}'::varchar[]"),
+    )
 
     versions: Mapped[list[SourceVersion]] = relationship(
         back_populates="source",
@@ -71,6 +91,10 @@ class Source(UUIDPrimaryKeyMixin, Base):
     ingestion_runs: Mapped[list[IngestionRun]] = relationship(
         back_populates="source",
         order_by="IngestionRun.started_at",
+    )
+    incoming_links: Mapped[list[SourceLink]] = relationship(
+        back_populates="target_source",
+        foreign_keys="SourceLink.target_source_id",
     )
 
 
@@ -128,6 +152,45 @@ class SourceVersion(UUIDPrimaryKeyMixin, Base):
         order_by="EvidenceBlock.ordinal",
     )
     ingestion_runs: Mapped[list[IngestionRun]] = relationship(back_populates="version")
+    outgoing_links: Mapped[list[SourceLink]] = relationship(
+        back_populates="from_version",
+        foreign_keys="SourceLink.from_version_id",
+    )
+
+
+class SourceLink(Base):
+    """A source-backed link discovered in one immutable source version.
+
+    A link records provenance only. The target source must still pass its own
+    extraction, qualification, freshness, applicability, and conflict checks.
+    """
+
+    __tablename__ = "source_links"
+    __table_args__ = (
+        Index("ix_source_links_target_source_id", "target_source_id"),
+        CheckConstraint("length(btrim(relation)) > 0", name="relation_not_blank"),
+    )
+
+    from_version_id: Mapped[UUID] = mapped_column(
+        PostgreSQLUUID(as_uuid=True),
+        ForeignKey("source_versions.id", ondelete="RESTRICT"),
+        primary_key=True,
+    )
+    target_source_id: Mapped[UUID] = mapped_column(
+        PostgreSQLUUID(as_uuid=True),
+        ForeignKey("sources.id", ondelete="RESTRICT"),
+        primary_key=True,
+    )
+    relation: Mapped[str] = mapped_column(String(64), primary_key=True)
+
+    from_version: Mapped[SourceVersion] = relationship(
+        back_populates="outgoing_links",
+        foreign_keys=[from_version_id],
+    )
+    target_source: Mapped[Source] = relationship(
+        back_populates="incoming_links",
+        foreign_keys=[target_source_id],
+    )
 
 
 class Qualification(UUIDPrimaryKeyMixin, Base):
@@ -144,8 +207,7 @@ class Qualification(UUIDPrimaryKeyMixin, Base):
             postgresql_where=sql_text("status = 'passed'"),
         ),
         CheckConstraint(
-            "valid_until >= checked_at AND "
-            "valid_until <= checked_at + INTERVAL '24 hours'",
+            "valid_until >= checked_at AND valid_until <= checked_at + INTERVAL '24 hours'",
             name="validity_within_24_hours",
         ),
         CheckConstraint("length(btrim(rule_version)) > 0", name="rule_version_not_blank"),

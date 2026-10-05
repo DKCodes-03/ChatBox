@@ -6,6 +6,7 @@ from enum import StrEnum
 from typing import Annotated, Self
 from uuid import UUID
 
+from app.context import ContextField
 from pydantic import BaseModel, ConfigDict, Field, StringConstraints, model_validator
 
 NonBlankText = Annotated[str, StringConstraints(strip_whitespace=True, min_length=1)]
@@ -34,16 +35,6 @@ class ReasonCode(StrEnum):
     OUT_OF_SCOPE = "out_of_scope"
     SOURCE_UNAVAILABLE = "source_unavailable"
     PROCESSING_UNAVAILABLE = "processing_unavailable"
-
-
-class ContextField(StrEnum):
-    CAMPUS = "campus"
-    TERM = "term"
-    YEAR = "year"
-    SESSION = "session"
-    PROGRAM = "program"
-    STUDENT_LEVEL = "student_level"
-    CATALOG_YEAR = "catalog_year"
 
 
 class StructuredModel(BaseModel):

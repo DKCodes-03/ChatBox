@@ -1,0 +1,107 @@
+{
+  "fixture_id": "us4-academic-guidance-v1",
+  "synthetic": true,
+  "institution": "Purdue University Northwest",
+  "cases": [
+    {
+      "id": "explicit-program-exists",
+      "question": "Does the Synthetic Data Science MS program exist?",
+      "context": {
+        "program": "Synthetic Data Science, MS",
+        "student_level": "Graduate",
+        "catalog_year": "2030-2031"
+      },
+      "expected_evidence_ids": ["34000000-0000-4000-8000-000000000001"],
+      "expected_program_status": "exists",
+      "must_not_claim_personal_admission": true,
+      "must_not_claim_current_availability": true
+    },
+    {
+      "id": "graduate-admission-general-steps",
+      "question": "What are the synthetic graduate admission steps?",
+      "context": {"student_level": "Graduate", "catalog_year": "2030-2031"},
+      "expected_evidence_ids": ["34000000-0000-4000-8000-000000000002"],
+      "expected_step_count": 3,
+      "must_not_decide_personal_admission": true
+    },
+    {
+      "id": "grouped-prerequisites",
+      "question": "What are the SYN 35000 prerequisites and corequisite?",
+      "context": {
+        "campus": "Hammond",
+        "program": "Synthetic Computing, BS",
+        "student_level": "Undergraduate",
+        "catalog_year": "2030-2031"
+      },
+      "expected_evidence_ids": ["34000000-0000-4000-8000-000000000003"],
+      "expected_prerequisite_expression": {
+        "operator": "or",
+        "groups": [
+          {
+            "operator": "and",
+            "requirements": [
+              {"course_code": "SYN 21000", "minimum_grade": "B"},
+              {"course_code": "SYN 22000", "minimum_grade": "C"}
+            ]
+          },
+          {
+            "operator": "single",
+            "requirements": [{"course_code": "SYN 23000", "minimum_grade": "B"}]
+          }
+        ]
+      },
+      "expected_corequisites": [
+        {"course_code": "SYN 35001", "concurrent_enrollment_allowed": true}
+      ],
+      "must_not_claim_personal_eligibility": true
+    },
+    {
+      "id": "plan-of-study-steps",
+      "question": "How do I prepare the synthetic plan of study?",
+      "context": {
+        "program": "Synthetic Data Science, MS",
+        "student_level": "Graduate",
+        "catalog_year": "2030-2031"
+      },
+      "expected_evidence_ids": ["34000000-0000-4000-8000-000000000004"],
+      "expected_step_count": 4,
+      "expected_required_approval": "Assigned academic advisor",
+      "must_not_validate_personal_plan": true
+    },
+    {
+      "id": "graduation-application-steps",
+      "question": "How do I apply for synthetic graduation?",
+      "context": {
+        "program": "Synthetic Data Science, MS",
+        "student_level": "Graduate",
+        "catalog_year": "2030-2031"
+      },
+      "expected_evidence_ids": ["34000000-0000-4000-8000-000000000005"],
+      "expected_step_count": 4,
+      "must_not_decide_graduation_status": true
+    },
+    {
+      "id": "incomplete-inventory-no-negative-inference",
+      "question": "Does the Synthetic Orbital Studies program not exist?",
+      "context": {"program": "Synthetic Orbital Studies", "catalog_year": "2030-2031"},
+      "ineligible_evidence_ids": ["34000000-0000-4000-8000-000000000006"],
+      "expected_limitation": "missing_evidence",
+      "must_not_claim_program_absence": true
+    },
+    {
+      "id": "typical-offering-not-current-availability",
+      "question": "Is SYN 46000 available now?",
+      "context": {
+        "campus": "Hammond",
+        "program": "Synthetic Computing, BS",
+        "student_level": "Undergraduate",
+        "catalog_year": "2030-2031"
+      },
+      "expected_evidence_ids": ["34000000-0000-4000-8000-000000000007"],
+      "expected_availability_basis": "typical_offering",
+      "expected_limitation": "current_availability_unconfirmed",
+      "expected_referral_id": "64000000-0000-4000-8000-000000000001",
+      "must_not_confirm_current_availability": true
+    }
+  ]
+}

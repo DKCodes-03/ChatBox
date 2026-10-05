@@ -1,0 +1,433 @@
+{
+  "fixture_id": "us5-ingestion-authority-v1",
+  "synthetic": true,
+  "notice": "SYNTHETIC TEST FIXTURE — NOT PNW POLICY",
+  "rule_version": "pnw-source-qualification-v1",
+  "observation_time": "2030-01-16T13:00:00Z",
+  "sources": [
+    {
+      "source_id": "15000000-0000-4000-8000-000000000001",
+      "version_id": "25000000-0000-4000-8000-000000000001",
+      "qualification_id": "45000000-0000-4000-8000-000000000001",
+      "url": "https://www.pnw.edu/__test__/ingestion/silver-compass/",
+      "title": "Synthetic Silver Compass Procedure Overview",
+      "media_type": "html",
+      "fixture_file": "linked-overview.html",
+      "content_sha256": "6a74bf55b40820631546ce41cc2438662e9ce2fd87bfd5d7d987406a2825071c",
+      "source_status": "eligible",
+      "extraction": {"status": "complete", "reason_codes": []},
+      "qualification": {
+        "status": "passed",
+        "checked_at": "2030-01-16T13:00:00Z",
+        "valid_until": "2030-01-17T13:00:00Z",
+        "reason_codes": []
+      },
+      "applicability": {
+        "topic": "synthetic_linked_procedure",
+        "institution": "Purdue University Northwest",
+        "campus": null,
+        "catalog_year": null,
+        "term": null,
+        "session": null
+      },
+      "links": [
+        {
+          "relation": "procedure_detail",
+          "target_source_id": "15000000-0000-4000-8000-000000000002"
+        },
+        {
+          "relation": "procedure_form",
+          "target_source_id": "15000000-0000-4000-8000-000000000003"
+        }
+      ],
+      "evidence": [
+        {
+          "evidence_id": "35000000-0000-4000-8000-000000000001",
+          "topic_key": "synthetic_linked_procedure",
+          "anchor": "scope",
+          "text_contains": ["linked detail page", "linked PDF form", "qualify independently"]
+        }
+      ]
+    },
+    {
+      "source_id": "15000000-0000-4000-8000-000000000002",
+      "version_id": "25000000-0000-4000-8000-000000000002",
+      "qualification_id": "45000000-0000-4000-8000-000000000002",
+      "url": "https://www.pnw.edu/__test__/ingestion/silver-compass/details/",
+      "title": "Synthetic Silver Compass Detail Steps",
+      "media_type": "html",
+      "fixture_file": "linked-details.html",
+      "content_sha256": "074dc029a4ceb0cf04d2b46e55d2aa625f3d1eb52dd690f3ff3ccf7d6f36a52f",
+      "source_status": "eligible",
+      "extraction": {"status": "complete", "reason_codes": []},
+      "qualification": {
+        "status": "passed",
+        "checked_at": "2030-01-16T13:00:00Z",
+        "valid_until": "2030-01-17T13:00:00Z",
+        "reason_codes": []
+      },
+      "applicability": {
+        "topic": "synthetic_linked_procedure",
+        "institution": "Purdue University Northwest",
+        "campus": null,
+        "catalog_year": null,
+        "term": null,
+        "session": null
+      },
+      "links": [
+        {
+          "relation": "continues_in",
+          "target_source_id": "15000000-0000-4000-8000-000000000003"
+        }
+      ],
+      "evidence": [
+        {
+          "evidence_id": "35000000-0000-4000-8000-000000000002",
+          "topic_key": "synthetic_linked_procedure",
+          "anchor": "steps-one-two",
+          "text_contains": ["SC-310", "silver compass symbol"]
+        }
+      ]
+    },
+    {
+      "source_id": "15000000-0000-4000-8000-000000000003",
+      "version_id": "25000000-0000-4000-8000-000000000003",
+      "qualification_id": "45000000-0000-4000-8000-000000000003",
+      "url": "https://www.pnw.edu/__test__/ingestion/silver-compass/form.pdf",
+      "title": "Synthetic Silver Compass PDF Form",
+      "media_type": "pdf",
+      "fixture_file": "linked-form.pdf",
+      "content_sha256": "d22b4809af4bac64f4a2e00586db60fc36217aafa3889555fc3d19d0a4758406",
+      "source_status": "eligible",
+      "extraction": {"status": "complete", "reason_codes": []},
+      "qualification": {
+        "status": "passed",
+        "checked_at": "2030-01-16T13:00:00Z",
+        "valid_until": "2030-01-17T13:00:00Z",
+        "reason_codes": []
+      },
+      "applicability": {
+        "topic": "synthetic_linked_procedure",
+        "institution": "Purdue University Northwest",
+        "campus": null,
+        "catalog_year": null,
+        "term": "Synthetic test term",
+        "session": "Synthetic fixture"
+      },
+      "links": [],
+      "evidence": [
+        {
+          "evidence_id": "35000000-0000-4000-8000-000000000003",
+          "topic_key": "synthetic_linked_procedure",
+          "page": 1,
+          "text_contains": ["Step 3", "SC-310", "SILVER-COMPLETE"]
+        }
+      ]
+    },
+    {
+      "source_id": "15000000-0000-4000-8000-000000000004",
+      "version_id": "25000000-0000-4000-8000-000000000004",
+      "qualification_id": "45000000-0000-4000-8000-000000000004",
+      "url": "https://www.pnw.edu/__test__/ingestion/broken-table/",
+      "title": "Synthetic Broken Copper Schedule",
+      "media_type": "html",
+      "fixture_file": "malformed-table.html",
+      "content_sha256": "4f74c4b1b51604907607695eece687042b2199778bc01b3115f54d607bc8108c",
+      "source_status": "quarantined",
+      "extraction": {"status": "incomplete", "reason_codes": ["malformed_table"]},
+      "qualification": {
+        "status": "failed",
+        "checked_at": "2030-01-16T13:00:00Z",
+        "valid_until": "2030-01-16T13:00:00Z",
+        "reason_codes": ["extraction_incomplete", "evidence_missing", "applicability_missing"]
+      },
+      "applicability": null,
+      "links": [],
+      "evidence": []
+    },
+    {
+      "source_id": "15000000-0000-4000-8000-000000000005",
+      "version_id": "25000000-0000-4000-8000-000000000005",
+      "qualification_id": "45000000-0000-4000-8000-000000000005",
+      "url": "https://www.pnw.edu/__test__/ingestion/idempotent-violet/",
+      "title": "Synthetic Idempotent Violet Policy",
+      "media_type": "html",
+      "fixture_file": "duplicate-policy.html",
+      "content_sha256": "b8cd5c237e0ff3bc754c0b19d2a2cc64099b72863266c1fffde998722962d5ff",
+      "source_status": "eligible",
+      "extraction": {"status": "complete", "reason_codes": []},
+      "fetch_sequence": [
+        {"fixture_file": "duplicate-policy.html", "expected_version_created": true},
+        {"fixture_file": "duplicate-policy-repeat.html", "expected_version_created": false}
+      ],
+      "expected_version_count": 1,
+      "qualification": {
+        "status": "passed",
+        "checked_at": "2030-01-16T13:00:00Z",
+        "valid_until": "2030-01-17T13:00:00Z",
+        "reason_codes": []
+      },
+      "applicability": {
+        "topic": "synthetic_duplicate",
+        "institution": "Purdue University Northwest",
+        "campus": null,
+        "catalog_year": null,
+        "term": null,
+        "session": null
+      },
+      "links": [],
+      "evidence": [
+        {
+          "evidence_id": "35000000-0000-4000-8000-000000000005",
+          "topic_key": "synthetic_duplicate",
+          "anchor": "single-rule",
+          "text_contains": ["VIOLET-44"]
+        }
+      ]
+    },
+    {
+      "source_id": "15000000-0000-4000-8000-000000000006",
+      "version_id": "25000000-0000-4000-8000-000000000006",
+      "qualification_id": "45000000-0000-4000-8000-000000000006",
+      "url": "https://www.pnw.edu/__test__/ingestion/teal-desk-hammond/",
+      "title": "Synthetic Hammond Teal Desk",
+      "media_type": "html",
+      "fixture_file": "campus-hammond.html",
+      "content_sha256": "4d3df34f5706e8acad30517b838aa7ac8ae7e11b42d7fb2fdbf6daa706d2a24f",
+      "source_status": "eligible",
+      "extraction": {"status": "complete", "reason_codes": []},
+      "qualification": {
+        "status": "passed",
+        "checked_at": "2030-01-16T13:00:00Z",
+        "valid_until": "2030-01-17T13:00:00Z",
+        "reason_codes": []
+      },
+      "applicability": {
+        "topic": "synthetic_campus_route",
+        "institution": "Purdue University Northwest",
+        "campus": "Hammond",
+        "catalog_year": null,
+        "term": null,
+        "session": null
+      },
+      "links": [],
+      "evidence": [
+        {
+          "evidence_id": "35000000-0000-4000-8000-000000000006",
+          "topic_key": "synthetic_campus_route",
+          "anchor": "hammond-route",
+          "text_contains": ["Hammond campus", "H-17"]
+        }
+      ]
+    },
+    {
+      "source_id": "15000000-0000-4000-8000-000000000007",
+      "version_id": "25000000-0000-4000-8000-000000000007",
+      "qualification_id": "45000000-0000-4000-8000-000000000007",
+      "url": "https://www.pnw.edu/__test__/ingestion/teal-desk-westville/",
+      "title": "Synthetic Westville Teal Desk",
+      "media_type": "html",
+      "fixture_file": "campus-westville.html",
+      "content_sha256": "0e8eda9d8912b1642996179dcc116112285474771f6cc86716de554a4ff42dd6",
+      "source_status": "eligible",
+      "extraction": {"status": "complete", "reason_codes": []},
+      "qualification": {
+        "status": "passed",
+        "checked_at": "2030-01-16T13:00:00Z",
+        "valid_until": "2030-01-17T13:00:00Z",
+        "reason_codes": []
+      },
+      "applicability": {
+        "topic": "synthetic_campus_route",
+        "institution": "Purdue University Northwest",
+        "campus": "Westville",
+        "catalog_year": null,
+        "term": null,
+        "session": null
+      },
+      "links": [],
+      "evidence": [
+        {
+          "evidence_id": "35000000-0000-4000-8000-000000000007",
+          "topic_key": "synthetic_campus_route",
+          "anchor": "westville-route",
+          "text_contains": ["Westville campus", "W-29"]
+        }
+      ]
+    },
+    {
+      "source_id": "15000000-0000-4000-8000-000000000008",
+      "version_id": "25000000-0000-4000-8000-000000000008",
+      "qualification_id": "45000000-0000-4000-8000-000000000008",
+      "url": "https://catalog.pnw.edu/__test__/ingestion/ing-25000/",
+      "title": "ING 25000 Synthetic Ingestion Prerequisites",
+      "media_type": "html",
+      "fixture_file": "prerequisite-groups.html",
+      "content_sha256": "dbfae08f961583f6e17ceab3abed2aeeb2f758028d80d167dc216bea64a7993c",
+      "source_status": "eligible",
+      "extraction": {"status": "complete", "reason_codes": []},
+      "qualification": {
+        "status": "passed",
+        "checked_at": "2030-01-16T13:00:00Z",
+        "valid_until": "2030-01-17T13:00:00Z",
+        "reason_codes": []
+      },
+      "applicability": {
+        "topic": "synthetic_course_prerequisites",
+        "institution": "Purdue University Northwest",
+        "campus": "Hammond",
+        "catalog_year": "2030-2031 undergraduate catalog",
+        "term": null,
+        "session": null
+      },
+      "links": [],
+      "evidence": [
+        {
+          "evidence_id": "35000000-0000-4000-8000-000000000008",
+          "topic_key": "synthetic_course_prerequisites",
+          "anchor": "requirements",
+          "structured_type": "prerequisite_group",
+          "text_contains": ["ING 11000", "ING 12000", "ING 13000", "ING 25001"]
+        }
+      ],
+      "course_relations": [
+        {
+          "course_code": "ING 25000",
+          "relation_type": "prerequisite",
+          "group_index": 0,
+          "alternatives": [
+            [
+              {"course_code": "ING 11000", "minimum_grade": "C"},
+              {"course_code": "ING 12000", "minimum_grade": "B"}
+            ],
+            [{"course_code": "ING 13000", "minimum_grade": "C"}]
+          ]
+        },
+        {
+          "course_code": "ING 25000",
+          "relation_type": "corequisite",
+          "group_index": 1,
+          "alternatives": [[{"course_code": "ING 25001", "concurrent_allowed": true}]]
+        }
+      ]
+    },
+    {
+      "source_id": "15000000-0000-4000-8000-000000000009",
+      "version_id": "25000000-0000-4000-8000-000000000009",
+      "qualification_id": "45000000-0000-4000-8000-000000000009",
+      "url": "https://www.pnw.edu/__test__/ingestion/expired-indigo/",
+      "title": "Synthetic Expired Indigo Window",
+      "media_type": "html",
+      "fixture_file": "stale-policy.html",
+      "content_sha256": "7011b0efca8ea637759b32f67e392ab16e1eb794363f9d34a70ac2d8987c51a9",
+      "source_status": "stale",
+      "extraction": {"status": "complete", "reason_codes": []},
+      "qualification": {
+        "status": "passed",
+        "checked_at": "2030-01-14T12:00:00Z",
+        "valid_until": "2030-01-15T12:00:00Z",
+        "reason_codes": []
+      },
+      "lifecycle_reason_codes": ["qualification_expired"],
+      "applicability": {
+        "topic": "synthetic_stale_policy",
+        "institution": "Purdue University Northwest",
+        "campus": null,
+        "catalog_year": null,
+        "term": null,
+        "session": null
+      },
+      "links": [],
+      "evidence": [
+        {
+          "evidence_id": "35000000-0000-4000-8000-000000000009",
+          "topic_key": "synthetic_stale_policy",
+          "anchor": "expired-window",
+          "text_contains": ["3:00 p.m.", "January 12, 2030"]
+        }
+      ]
+    },
+    {
+      "source_id": "15000000-0000-4000-8000-000000000010",
+      "version_id": "25000000-0000-4000-8000-000000000010",
+      "qualification_id": "45000000-0000-4000-8000-000000000010",
+      "url": "https://www.pnw.edu/__test__/ingestion/gold-bell-eight/",
+      "title": "Synthetic Gold Bell Schedule A",
+      "media_type": "html",
+      "fixture_file": "conflict-eight.html",
+      "content_sha256": "f8b5b3907a4172191a331ee3e50e97bebca94ee26af080f7be038f5dbcfa7a64",
+      "source_status": "eligible",
+      "extraction": {"status": "complete", "reason_codes": []},
+      "qualification": {
+        "status": "passed",
+        "checked_at": "2030-01-16T13:00:00Z",
+        "valid_until": "2030-01-17T13:00:00Z",
+        "reason_codes": []
+      },
+      "applicability": {
+        "topic": "synthetic_conflict",
+        "institution": "Purdue University Northwest",
+        "campus": null,
+        "catalog_year": null,
+        "term": null,
+        "session": null
+      },
+      "links": [],
+      "evidence": [
+        {
+          "evidence_id": "35000000-0000-4000-8000-000000000010",
+          "topic_key": "synthetic_conflict",
+          "anchor": "opening-time",
+          "text_contains": ["8:00 a.m.", "synthetic test day"]
+        }
+      ]
+    },
+    {
+      "source_id": "15000000-0000-4000-8000-000000000011",
+      "version_id": "25000000-0000-4000-8000-000000000011",
+      "qualification_id": "45000000-0000-4000-8000-000000000011",
+      "url": "https://www.pnw.edu/__test__/ingestion/gold-bell-ten/",
+      "title": "Synthetic Gold Bell Schedule B",
+      "media_type": "html",
+      "fixture_file": "conflict-ten.html",
+      "content_sha256": "3a7bc054ef2c78871ccaf9d85eb61cd7bbc01b2db00242fd1de12cf8e6edad1a",
+      "source_status": "eligible",
+      "extraction": {"status": "complete", "reason_codes": []},
+      "qualification": {
+        "status": "passed",
+        "checked_at": "2030-01-16T13:00:00Z",
+        "valid_until": "2030-01-17T13:00:00Z",
+        "reason_codes": []
+      },
+      "applicability": {
+        "topic": "synthetic_conflict",
+        "institution": "Purdue University Northwest",
+        "campus": null,
+        "catalog_year": null,
+        "term": null,
+        "session": null
+      },
+      "links": [],
+      "evidence": [
+        {
+          "evidence_id": "35000000-0000-4000-8000-000000000011",
+          "topic_key": "synthetic_conflict",
+          "anchor": "opening-time",
+          "text_contains": ["10:00 a.m.", "synthetic test day"]
+        }
+      ]
+    }
+  ],
+  "conflicts": [
+    {
+      "conflict_id": "55000000-0000-4000-8000-000000000001",
+      "topic_key": "synthetic_conflict",
+      "status": "unresolved",
+      "evidence_ids": [
+        "35000000-0000-4000-8000-000000000010",
+        "35000000-0000-4000-8000-000000000011"
+      ],
+      "supersession_evidence_ids": []
+    }
+  ]
+}

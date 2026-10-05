@@ -15,9 +15,10 @@ from google import genai
 from google.genai import types
 from pydantic import SecretStr
 
-GEMINI_MODEL = "gemini-2.5-flash-lite"
+GEMINI_MODEL = "gemini-3.5-flash-lite"
 MAX_OUTPUT_TOKENS = 512
 RESPONSE_MIME_TYPE = "application/json"
+MINIMUM_HTTP_TIMEOUT_SECONDS = 10.0
 
 ApiKeyLoader = Callable[[], SecretStr]
 
@@ -85,7 +86,10 @@ class GeminiAdapter:
         self._api_key_loader = api_key_loader
         self._model = model
         self._max_output_tokens = max_output_tokens
-        self._timeout_milliseconds = max(1, round(timeout_seconds * 1_000))
+        self._generation_timeout_seconds = timeout_seconds
+        self._http_timeout_milliseconds = round(
+            max(timeout_seconds, MINIMUM_HTTP_TIMEOUT_SECONDS) * 1_000
+        )
         self._client_factory = client_factory
 
     @classmethod
@@ -125,7 +129,10 @@ class GeminiAdapter:
         api_key = secret.get_secret_value()
         client = self._client_factory(
             api_key=api_key,
-            http_options=types.HttpOptions(timeout=self._timeout_milliseconds),
+            # Gemini 3.5 requires an HTTP deadline of at least ten seconds. The
+            # surrounding asyncio deadline still enforces the product's
+            # nine-second generation limit and cancels the provider request.
+            http_options=types.HttpOptions(timeout=self._http_timeout_milliseconds),
         )
         api_key = ""
         secret = SecretStr("")
@@ -137,9 +144,13 @@ class GeminiAdapter:
                 candidate_count=1,
                 max_output_tokens=self._max_output_tokens,
                 response_mime_type=RESPONSE_MIME_TYPE,
-                response_schema=StructuredAnswer,
+                # Gemini's OpenAPI-style response_schema rejects Pydantic's
+                # additionalProperties guards. The JSON Schema endpoint accepts
+                # those guards, while final validation below remains strict.
+                response_json_schema=StructuredAnswer.model_json_schema(),
                 system_instruction=request.system_instruction,
                 tools=None,
+                automatic_function_calling=types.AutomaticFunctionCallingConfig(disable=True),
                 cached_content=None,
             )
             call_task = asyncio.create_task(
@@ -153,7 +164,8 @@ class GeminiAdapter:
             if cancellation.cancelled:
                 call_task.cancel()
             cancellation.raise_if_cancelled()
-            response = await call_task
+            async with asyncio.timeout(self._generation_timeout_seconds):
+                response = await call_task
             cancellation.raise_if_cancelled()
             answer = StructuredAnswer.model_validate(response.parsed)
             cancellation.raise_if_cancelled()

@@ -53,7 +53,9 @@ class CourseRelation(UUIDPrimaryKeyMixin, Base):
             "length(btrim(related_course_code)) > 0",
             name="related_course_code_not_blank",
         ),
-        CheckConstraint("jsonb_typeof(group_expression) = 'object'", name="group_expression_object"),
+        CheckConstraint(
+            "jsonb_typeof(group_expression) = 'object'", name="group_expression_object"
+        ),
     )
 
     evidence_block_id: Mapped[UUID] = mapped_column(

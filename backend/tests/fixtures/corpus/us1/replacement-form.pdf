@@ -1,0 +1,80 @@
+%PDF-1.4
+%Synthetic fixture
+1 0 obj
+<< /Type /Catalog /Pages 2 0 R >>
+endobj
+2 0 obj
+<< /Type /Pages /Kids [3 0 R 5 0 R] /Count 2 >>
+endobj
+3 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Resources << /Font << /F1 4 0 R >> >> /Contents 6 0 R >>
+endobj
+4 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>
+endobj
+5 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Resources << /Font << /F1 4 0 R >> >> /Contents 7 0 R >>
+endobj
+6 0 obj
+<< /Length 474 >>
+stream
+BT
+/F1 16 Tf
+72 740 Td
+(SYNTHETIC TEST FIXTURE - NOT PNW POLICY) Tj
+/F1 12 Tf
+0 -28 Td
+(Synthetic Blue Lantern Replacement Form Instructions) Tj
+0 -28 Td
+(Steps 3 and 4) Tj
+0 -22 Td
+(Step 3. Enter Fixture Student and reference code BL-204.) Tj
+0 -22 Td
+(Do not enter a real name, permit number, or student identifier.) Tj
+0 -22 Td
+(Step 4. Attach the sample image labeled BLUE-LANTERN-SAMPLE.) Tj
+0 -28 Td
+(Continue to page 2 for Step 5 and the completion condition.) Tj
+ET
+endstream
+endobj
+7 0 obj
+<< /Length 547 >>
+stream
+BT
+/F1 16 Tf
+72 740 Td
+(SYNTHETIC TEST FIXTURE - NOT PNW POLICY) Tj
+/F1 12 Tf
+0 -28 Td
+(Synthetic Blue Lantern Replacement Form Instructions) Tj
+0 -28 Td
+(Step 5 and completion) Tj
+0 -22 Td
+(Step 5. Submit through the fixture-only submission route.) Tj
+0 -22 Td
+(This route is not a real university office, service, or transaction.) Tj
+0 -22 Td
+(Retain the synthetic confirmation text TEST-COMPLETE.) Tj
+0 -28 Td
+(The exercise is complete only after Steps 1 through 5 are finished.) Tj
+0 -28 Td
+(END SYNTHETIC TEST FIXTURE - NOT PNW POLICY) Tj
+ET
+endstream
+endobj
+xref
+0 8
+0000000000 65535 f 
+0000000028 00000 n 
+0000000077 00000 n 
+0000000140 00000 n 
+0000000266 00000 n 
+0000000336 00000 n 
+0000000462 00000 n 
+0000000986 00000 n 
+trailer
+<< /Size 8 /Root 1 0 R >>
+startxref
+1583
+%%EOF

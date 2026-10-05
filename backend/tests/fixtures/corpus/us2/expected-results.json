@@ -1,0 +1,84 @@
+{
+  "fixture_id": "us2-adverse-sources-v1",
+  "synthetic": true,
+  "observed_at": "2030-01-16T13:00:00Z",
+  "institution": "Purdue University Northwest",
+  "cases": [
+    {
+      "id": "missing-evidence",
+      "question": "What is the synthetic Silver Compass deadline?",
+      "topic": "synthetic_missing",
+      "expected_outcome": "unable",
+      "expected_reason_code": "missing_evidence",
+      "expected_citation_evidence_ids": [],
+      "expected_referral": null,
+      "must_say_no_verified_referral": true
+    },
+    {
+      "id": "stale-source",
+      "question": "When does the synthetic Amber Kite request window close?",
+      "topic": "synthetic_stale_deadline",
+      "expected_outcome": "unable",
+      "expected_reason_code": "expired_source",
+      "expected_citation_evidence_ids": [],
+      "expected_referral": null,
+      "prohibited_claims": ["The request window closes at 4:00 p.m. on January 12, 2030."]
+    },
+    {
+      "id": "quarantined-source-and-contact",
+      "question": "Who handles the synthetic Amber Kite request?",
+      "topic": "synthetic_quarantined_guidance",
+      "expected_outcome": "unable",
+      "expected_reason_code": "source_unavailable",
+      "expected_citation_evidence_ids": [],
+      "expected_referral": null,
+      "prohibited_claims": ["Imaginary Kite Desk", "unverified-desk@example.invalid"]
+    },
+    {
+      "id": "source-outage",
+      "question": "How do I complete the synthetic source-outage procedure?",
+      "topic": "synthetic_source_outage",
+      "expected_outcome": "unable",
+      "expected_reason_code": "source_unavailable",
+      "expected_citation_evidence_ids": [],
+      "expected_referral": null
+    },
+    {
+      "id": "unresolved-conflict",
+      "question": "When does the fictional Coral Clock service open?",
+      "topic": "synthetic_conflict",
+      "expected_outcome": "unable",
+      "expected_reason_code": "conflict",
+      "expected_citation_evidence_ids": [
+        "31000000-0000-4000-8000-000000000004",
+        "31000000-0000-4000-8000-000000000005"
+      ],
+      "expected_referral": null,
+      "prohibited_claims": [
+        "The service opens at 8:00 a.m.",
+        "The service opens at 10:00 a.m."
+      ]
+    },
+    {
+      "id": "personal-registration-case",
+      "question": "Can you inspect my record and fix synthetic registration error ZX-17?",
+      "topic": "synthetic_personal_registration",
+      "expected_outcome": "unable",
+      "expected_reason_code": "personal_case",
+      "expected_citation_evidence_ids": [
+        "31000000-0000-4000-8000-000000000006"
+      ],
+      "expected_referral": {
+        "office_name": "Synthetic Registration Support Office",
+        "contact_label": "Email synthetic registration support",
+        "contact_url": "mailto:registration-fixture@example.invalid"
+      },
+      "prohibited_claims": [
+        "I inspected your student record.",
+        "I fixed error ZX-17.",
+        "You are eligible to register."
+      ]
+    }
+  ],
+  "provider_failure_fixture": "provider-failures.json"
+}

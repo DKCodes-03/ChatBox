@@ -1,0 +1,152 @@
+{
+  "fixture_id": "us1-blue-lantern-procedure-v1",
+  "synthetic": true,
+  "notice": "SYNTHETIC TEST FIXTURE — NOT PNW POLICY",
+  "rule_version": "fixture-qualification-v1",
+  "checked_at": "2030-01-15T12:00:00Z",
+  "valid_until": "2030-01-16T12:00:00Z",
+  "sources": [
+    {
+      "source_id": "10000000-0000-4000-8000-000000000001",
+      "version_id": "20000000-0000-4000-8000-000000000001",
+      "qualification_id": "40000000-0000-4000-8000-000000000001",
+      "url": "https://www.pnw.edu/__test__/blue-lantern/procedure/",
+      "title": "Synthetic Blue Lantern Procedure Overview",
+      "media_type": "html",
+      "fixture_file": "procedure-overview.html",
+      "content_sha256": "cb0c41e21b690b97b4f86c7c98dbdea64fa94f7fc0e4b9a0c987bbe89c558aee",
+      "qualification": {
+        "status": "passed",
+        "provenance": "reserved PNW fixture URL and explicit synthetic marker",
+        "extraction_complete": true,
+        "applicability_supported": true,
+        "fresh": true,
+        "conflict_free": true
+      },
+      "links": [
+        {
+          "relation": "procedure_detail",
+          "target_source_id": "10000000-0000-4000-8000-000000000002"
+        },
+        {
+          "relation": "procedure_form",
+          "target_source_id": "10000000-0000-4000-8000-000000000003"
+        }
+      ],
+      "evidence": [
+        {
+          "evidence_id": "30000000-0000-4000-8000-000000000001",
+          "ordinal": 0,
+          "heading_path": ["Synthetic Blue Lantern Permit Replacement Exercise", "Scope"],
+          "anchor": "scope",
+          "topic_key": "synthetic_procedure",
+          "text_contains": ["TEST ONLY", "blue-lantern symbol"]
+        },
+        {
+          "evidence_id": "30000000-0000-4000-8000-000000000002",
+          "ordinal": 1,
+          "heading_path": [
+            "Synthetic Blue Lantern Permit Replacement Exercise",
+            "Complete procedure"
+          ],
+          "anchor": "complete-procedure",
+          "topic_key": "synthetic_procedure",
+          "text_contains": ["numbered sequence in order", "all five supported steps"]
+        }
+      ]
+    },
+    {
+      "source_id": "10000000-0000-4000-8000-000000000002",
+      "version_id": "20000000-0000-4000-8000-000000000002",
+      "qualification_id": "40000000-0000-4000-8000-000000000002",
+      "url": "https://www.pnw.edu/__test__/blue-lantern/eligibility-and-steps/",
+      "title": "Synthetic Blue Lantern Eligibility and First Steps",
+      "media_type": "html",
+      "fixture_file": "eligibility-and-steps.html",
+      "content_sha256": "11dad32ca4dc2ef45c44a1ea4e795e46715f75ec5a1e937e0526d8d0f1f0c7ca",
+      "qualification": {
+        "status": "passed",
+        "provenance": "reserved PNW fixture URL and explicit synthetic marker",
+        "extraction_complete": true,
+        "applicability_supported": true,
+        "fresh": true,
+        "conflict_free": true
+      },
+      "links": [
+        {
+          "relation": "continues_in",
+          "target_source_id": "10000000-0000-4000-8000-000000000003"
+        },
+        {
+          "relation": "described_by",
+          "target_source_id": "10000000-0000-4000-8000-000000000001"
+        }
+      ],
+      "evidence": [
+        {
+          "evidence_id": "30000000-0000-4000-8000-000000000003",
+          "ordinal": 0,
+          "heading_path": ["Synthetic Blue Lantern Eligibility and First Steps", "Eligibility condition"],
+          "anchor": "eligibility",
+          "topic_key": "synthetic_procedure",
+          "text_contains": ["TEST ONLY", "no supported next step"]
+        },
+        {
+          "evidence_id": "30000000-0000-4000-8000-000000000004",
+          "ordinal": 1,
+          "heading_path": ["Synthetic Blue Lantern Eligibility and First Steps", "Numbered procedure"],
+          "anchor": "first-steps",
+          "topic_key": "synthetic_procedure",
+          "text_contains": ["Step 1", "BL-204", "step 3"]
+        }
+      ]
+    },
+    {
+      "source_id": "10000000-0000-4000-8000-000000000003",
+      "version_id": "20000000-0000-4000-8000-000000000003",
+      "qualification_id": "40000000-0000-4000-8000-000000000003",
+      "url": "https://www.pnw.edu/__test__/blue-lantern/replacement-form.pdf",
+      "title": "Synthetic Blue Lantern Replacement Form Instructions",
+      "media_type": "pdf",
+      "fixture_file": "replacement-form.pdf",
+      "content_sha256": "3821a866da841857c6e01801e232ef32f2f944c1dc03b452eb9e280ee8d52d0c",
+      "qualification": {
+        "status": "passed",
+        "provenance": "reserved PNW fixture URL and explicit synthetic marker",
+        "extraction_complete": true,
+        "applicability_supported": true,
+        "fresh": true,
+        "conflict_free": true
+      },
+      "links": [],
+      "evidence": [
+        {
+          "evidence_id": "30000000-0000-4000-8000-000000000005",
+          "ordinal": 0,
+          "heading_path": ["Synthetic Blue Lantern Replacement Form Instructions", "Steps 3 and 4"],
+          "page": 1,
+          "topic_key": "synthetic_procedure",
+          "text_contains": ["Step 3", "Fixture Student", "Step 4", "BLUE-LANTERN-SAMPLE"]
+        },
+        {
+          "evidence_id": "30000000-0000-4000-8000-000000000006",
+          "ordinal": 1,
+          "heading_path": ["Synthetic Blue Lantern Replacement Form Instructions", "Step 5 and completion"],
+          "page": 2,
+          "topic_key": "synthetic_procedure",
+          "text_contains": ["Step 5", "fixture-only submission route", "TEST-COMPLETE"]
+        }
+      ]
+    }
+  ],
+  "applicability": {
+    "topic": "synthetic_procedure",
+    "institution": "Purdue University Northwest",
+    "campus": null,
+    "student_level": null,
+    "program": null,
+    "catalog_year": null,
+    "term": null,
+    "session": null
+  }
+}

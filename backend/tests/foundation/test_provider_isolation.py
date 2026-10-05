@@ -134,16 +134,22 @@ async def test_gemini_call_is_stateless_bounded_and_closes_its_client() -> None:
     assert result == _safe_answer()
     assert len(factory_calls) == 1
     assert factory_calls[0]["api_key"] == "synthetic-api-key"
+    http_options = cast(types.HttpOptions, factory_calls[0]["http_options"])
+    assert http_options.timeout == 10_000
     assert len(models.calls) == 1
     call = models.calls[0]
-    assert call["model"] == "gemini-2.5-flash-lite"
+    assert call["model"] == "gemini-3.5-flash-lite"
     assert call["contents"] == request.prompt
     config = cast(types.GenerateContentConfig, call["config"])
     assert config.candidate_count == 1
     assert config.max_output_tokens == 512
     assert config.cached_content is None
     assert config.tools is None
+    assert config.automatic_function_calling is not None
+    assert config.automatic_function_calling.disable is True
     assert config.system_instruction == request.system_instruction
+    assert config.response_schema is None
+    assert config.response_json_schema == StructuredAnswer.model_json_schema()
     assert async_client.closed
 
 

@@ -66,6 +66,7 @@ class Settings(BaseSettings):
     request_body_logging_enabled: bool = False
     sql_echo: bool = False
     trace_content_enabled: bool = False
+    synthetic_test_mode: bool = False
 
     postgres_host: str = Field(default="db", min_length=1, max_length=253)
     postgres_port: int = Field(default=5432, ge=1, le=65535)
@@ -86,7 +87,7 @@ class Settings(BaseSettings):
     postgres_governance_password_file: Path = Path("/run/secrets/postgres_governance_password")
 
     llm_provider: ProviderMode = ProviderMode.GEMINI
-    gemini_model: Literal["gemini-2.5-flash-lite"] = "gemini-2.5-flash-lite"
+    gemini_model: Literal["gemini-3.5-flash-lite"] = "gemini-3.5-flash-lite"
     gemini_api_key_file: Path = Path("/run/secrets/gemini_api_key")
     gemini_max_output_tokens: int = Field(default=512, ge=1, le=512)
     generation_timeout_seconds: float = Field(default=9, gt=0, le=9)
@@ -99,9 +100,9 @@ class Settings(BaseSettings):
     local_inference_base_url: AnyHttpUrl = AnyHttpUrl("http://inference:8080")
     local_inference_model_path: Path = Path("/models/qwen3-4b-q4_k_m.gguf")
 
-    embedding_model: Literal[
+    embedding_model: Literal["sentence-transformers/all-MiniLM-L6-v2"] = (
         "sentence-transformers/all-MiniLM-L6-v2"
-    ] = "sentence-transformers/all-MiniLM-L6-v2"
+    )
     embedding_model_cache_dir: Path = Path("/models/embeddings")
     embedding_dimensions: int = Field(default=384, ge=384, le=384)
     evidence_max_wordpieces: int = Field(default=220, ge=1, le=220)
@@ -167,6 +168,13 @@ class Settings(BaseSettings):
 
     @model_validator(mode="after")
     def _validate_provider_policy(self) -> Self:
+        database_users = {
+            self.postgres_runtime_user,
+            self.postgres_migration_user,
+            self.postgres_governance_user,
+        }
+        if len(database_users) != 3:
+            raise ValueError("runtime, migration, and governance database users must be distinct")
         if (
             self.public_origin.path not in (None, "", "/")
             or self.public_origin.query is not None
@@ -186,6 +194,8 @@ class Settings(BaseSettings):
             raise ValueError("content-bearing logs, SQL echo, and tracing must remain disabled")
         if self.provider_conversation_ids_enabled or self.provider_prompt_cache_enabled:
             raise ValueError("provider conversation IDs and prompt caching must remain disabled")
+        if self.synthetic_test_mode and self.app_env is not AppEnvironment.TEST:
+            raise ValueError("synthetic fixture mode is permitted only in the test environment")
         if self.llm_provider is ProviderMode.LOCAL and not self.local_inference_enabled:
             raise ValueError("local provider mode requires local inference to be enabled")
         if (
@@ -193,9 +203,7 @@ class Settings(BaseSettings):
             and self.llm_provider is ProviderMode.GEMINI
             and not self.gemini_production_data_handling_approved
         ):
-            raise ValueError(
-                "production Gemini use requires explicit data-handling approval"
-            )
+            raise ValueError("production Gemini use requires explicit data-handling approval")
         if self.app_env is AppEnvironment.PRODUCTION and self.public_origin.scheme != "https":
             raise ValueError("production public origin must use HTTPS")
         return self

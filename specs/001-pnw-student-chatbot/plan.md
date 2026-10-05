@@ -23,7 +23,7 @@ model downloads have been created or deployed. The specification and design are 
 **Language/Version**: Python 3.12; TypeScript with React 19; Node 22 for frontend build.
 
 **Primary Dependencies**: FastAPI, Pydantic 2, SQLAlchemy 2, psycopg 3, Alembic, Vite,
-Sentence Transformers, Google GenAI Python SDK (`google-genai`), Gemini `gemini-2.5-flash-lite`,
+Sentence Transformers, Google GenAI Python SDK (`google-genai`), Gemini `gemini-3.5-flash-lite`,
 llama.cpp fallback, Beautiful Soup and pypdf. Pin the SDK version, model identifier and Docker
 image digests during implementation; research.md records provider, quota and data-handling gates.
 
@@ -118,7 +118,7 @@ flowchart TB
             Coordinator --> Validator
         end
         Model[LLM adapter]
-        Gemini[Google Gemini API\n gemini-2.5-flash-lite]
+        Gemini[Google Gemini API\n gemini-3.5-flash-lite]
         Local[Optional local llama.cpp fallback]
         DB[(PostgreSQL and pgvector)]
         Ingest[Scheduled ingestion and automatic qualification]

@@ -1,0 +1,34 @@
+{
+  "sources": [
+    {
+      "url": "https://www.pnw.edu/__test__/us3/hammond-fall-2030-full-term/",
+      "title": "Synthetic Hammond Fall 2030 Full-Term Schedule",
+      "topics": ["synthetic_academic_schedule"],
+      "allowed_child_hosts": ["www.pnw.edu"]
+    },
+    {
+      "url": "https://www.pnw.edu/__test__/us3/hammond-fall-2030-first-eight-weeks/",
+      "title": "Synthetic Hammond Fall 2030 First 8 Weeks Schedule",
+      "topics": ["synthetic_academic_schedule"],
+      "allowed_child_hosts": ["www.pnw.edu"]
+    },
+    {
+      "url": "https://www.pnw.edu/__test__/us3/westville-fall-2030-full-term/",
+      "title": "Synthetic Westville Fall 2030 Full-Term Schedule",
+      "topics": ["synthetic_academic_schedule"],
+      "allowed_child_hosts": ["www.pnw.edu"]
+    },
+    {
+      "url": "https://www.pnw.edu/__test__/us3/hammond-spring-2031-full-term/",
+      "title": "Synthetic Hammond Spring 2031 Full-Term Schedule",
+      "topics": ["synthetic_academic_schedule"],
+      "allowed_child_hosts": ["www.pnw.edu"]
+    },
+    {
+      "url": "https://www.pnw.edu/__test__/us3/synthetic-computing-prerequisites/",
+      "title": "Synthetic Computing Prerequisites",
+      "topics": ["synthetic_course_prerequisites"],
+      "allowed_child_hosts": ["www.pnw.edu"]
+    }
+  ]
+}

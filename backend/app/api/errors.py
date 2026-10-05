@@ -36,7 +36,9 @@ class SafeErrorDefinition:
 
 
 ERROR_DEFINITIONS: dict[SafeErrorCode, SafeErrorDefinition] = {
-    SafeErrorCode.BAD_REQUEST: SafeErrorDefinition(400, "The request could not be processed.", False),
+    SafeErrorCode.BAD_REQUEST: SafeErrorDefinition(
+        400, "The request could not be processed.", False
+    ),
     SafeErrorCode.ORIGIN_NOT_ALLOWED: SafeErrorDefinition(
         403,
         "The request origin is not allowed.",
@@ -54,13 +56,17 @@ ERROR_DEFINITIONS: dict[SafeErrorCode, SafeErrorDefinition] = {
     ),
     SafeErrorCode.UNAUTHORIZED: SafeErrorDefinition(401, "A valid session is required.", False),
     SafeErrorCode.FORBIDDEN: SafeErrorDefinition(403, "The request is not allowed.", False),
-    SafeErrorCode.NOT_FOUND: SafeErrorDefinition(404, "The requested resource was not found.", False),
+    SafeErrorCode.NOT_FOUND: SafeErrorDefinition(
+        404, "The requested resource was not found.", False
+    ),
     SafeErrorCode.METHOD_NOT_ALLOWED: SafeErrorDefinition(
         405,
         "The request method is not allowed.",
         False,
     ),
-    SafeErrorCode.CONFLICT: SafeErrorDefinition(409, "The request conflicts with current state.", False),
+    SafeErrorCode.CONFLICT: SafeErrorDefinition(
+        409, "The request conflicts with current state.", False
+    ),
     SafeErrorCode.SESSION_EXPIRED: SafeErrorDefinition(410, "The session has ended.", False),
     SafeErrorCode.RATE_LIMITED: SafeErrorDefinition(
         429,

@@ -3,6 +3,8 @@
 from __future__ import annotations
 
 import math
+import re
+from collections import defaultdict
 from copy import deepcopy
 from dataclasses import dataclass, field
 from datetime import UTC, datetime
@@ -18,7 +20,7 @@ from app.models.enums import (
     QualificationStatus,
     SourceStatus,
 )
-from app.models.guidance import Conflict, conflict_evidence_blocks
+from app.models.guidance import Conflict, CourseRelation, conflict_evidence_blocks
 from app.models.sources import (
     Applicability,
     Embedding,
@@ -34,15 +36,19 @@ from app.retrieval.embeddings import (
     TemporaryQueryVector,
 )
 from numpy.typing import NDArray
-from sqlalchemy import String, any_, exists, func, literal, or_, select, union_all
+from sqlalchemy import String, any_, exists, false, func, literal, or_, select, union_all
 from sqlalchemy.engine import RowMapping
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session, aliased
 from sqlalchemy.sql import Select
 
 MAX_CANDIDATES_PER_CHANNEL = 20
+MAX_SELECTED_EVIDENCE = 8
 MAX_SCOPE_VALUE_CHARACTERS = 255
 FULL_TEXT_CONFIGURATION = "english"
+RANK_FUSION_CONSTANT = 60
+MAX_STRUCTURED_COURSE_CODES = 8
+_COURSE_CODE_RE = re.compile(r"\b([A-Za-z]{2,8})\s*-?\s*(\d{5}[A-Za-z]?)\b")
 
 JsonContainer = dict[str, object] | list[object]
 FloatVector = NDArray[np.float32]
@@ -65,6 +71,7 @@ class RetrievalUnavailableError(RetrievalError):
 class RetrievalChannel(StrEnum):
     VECTOR = "vector"
     FULL_TEXT = "full_text"
+    STRUCTURED = "structured"
 
 
 @dataclass(frozen=True, slots=True)
@@ -79,6 +86,7 @@ class RetrievalScope:
     catalog_year: str | None = None
     term: str | None = None
     session: str | None = None
+    year: str | None = None
 
     def __post_init__(self) -> None:
         object.__setattr__(self, "topic", self._required(self.topic, maximum=128))
@@ -90,6 +98,7 @@ class RetrievalScope:
             "catalog_year",
             "term",
             "session",
+            "year",
         ):
             value = cast(str | None, getattr(self, name))
             object.__setattr__(self, name, self._optional(value))
@@ -120,6 +129,7 @@ class EvidenceApplicability:
     catalog_year: str | None
     term: str | None
     session: str | None
+    year: str | None = None
 
 
 @dataclass(frozen=True, slots=True)
@@ -148,18 +158,57 @@ class RetrievedEvidence:
 
 @dataclass(frozen=True, slots=True)
 class RetrievalCandidates:
-    """Unfused exact-vector and keyword rankings for later selection."""
+    """Channel rankings that can produce one bounded, deduplicated evidence set."""
 
     vector: tuple[RetrievedEvidence, ...]
     full_text: tuple[RetrievedEvidence, ...]
+    structured: tuple[RetrievedEvidence, ...] = ()
 
     @property
     def empty(self) -> bool:
-        return not self.vector and not self.full_text
+        return not self.vector and not self.full_text and not self.structured
+
+    def select(
+        self,
+        *,
+        maximum_evidence: int = MAX_SELECTED_EVIDENCE,
+    ) -> tuple[RetrievedEvidence, ...]:
+        """Fuse channel ranks with deterministic reciprocal-rank fusion."""
+
+        if (
+            isinstance(maximum_evidence, bool)
+            or not isinstance(maximum_evidence, int)
+            or maximum_evidence < 1
+            or maximum_evidence > MAX_SELECTED_EVIDENCE
+        ):
+            raise ValueError("maximum evidence must be between one and eight")
+        scores: defaultdict[UUID, float] = defaultdict(float)
+        evidence_by_id: dict[UUID, RetrievedEvidence] = {}
+        seen_channel_evidence: set[tuple[RetrievalChannel, UUID]] = set()
+        for expected_channel, ranking in (
+            (RetrievalChannel.VECTOR, self.vector),
+            (RetrievalChannel.FULL_TEXT, self.full_text),
+            (RetrievalChannel.STRUCTURED, self.structured),
+        ):
+            for item in ranking:
+                if (
+                    not isinstance(item, RetrievedEvidence)
+                    or item.channel is not expected_channel
+                    or item.rank < 1
+                ):
+                    raise RetrievalUnavailableError()
+                channel_key = (expected_channel, item.evidence_id)
+                if channel_key in seen_channel_evidence:
+                    continue
+                seen_channel_evidence.add(channel_key)
+                scores[item.evidence_id] += 1.0 / (RANK_FUSION_CONSTANT + item.rank)
+                evidence_by_id.setdefault(item.evidence_id, item)
+        ordered_ids = sorted(scores, key=lambda item: (-scores[item], str(item)))
+        return tuple(evidence_by_id[evidence_id] for evidence_id in ordered_ids[:maximum_evidence])
 
 
 class EvidenceSearch:
-    """Run both rankings in one PostgreSQL statement and one database snapshot."""
+    """Run all retrieval rankings in one PostgreSQL statement and database snapshot."""
 
     def __init__(
         self,
@@ -192,12 +241,19 @@ class EvidenceSearch:
         query_vector: TemporaryQueryVector,
         scope: RetrievalScope,
         observed_at: datetime | None = None,
+        include_unresolved_conflicts: bool = False,
     ) -> RetrievalCandidates:
-        """Return complete eligible candidates without persisting query text or vectors."""
+        """Return qualified candidates without persisting query text or vectors.
+
+        Unresolved conflicts remain excluded by default. The diagnostic option exists only so a
+        safe-failure response can cite the disputed sources without using them for a claim.
+        """
 
         cleaned_query = self._validated_query(query)
         checked_at = self._validated_time(observed_at)
         if not isinstance(scope, RetrievalScope):
+            raise InvalidRetrievalInputError()
+        if not isinstance(include_unresolved_conflicts, bool):
             raise InvalidRetrievalInputError()
         vector_values = self._validated_vector(query_vector)
         statement = self._build_statement(
@@ -205,6 +261,7 @@ class EvidenceSearch:
             query_vector=vector_values,
             scope=scope,
             observed_at=checked_at,
+            include_unresolved_conflicts=include_unresolved_conflicts,
         )
 
         try:
@@ -214,9 +271,14 @@ class EvidenceSearch:
 
         vector: list[RetrievedEvidence] = []
         full_text: list[RetrievedEvidence] = []
+        structured: list[RetrievedEvidence] = []
         for row in rows:
             channel = RetrievalChannel(cast(str, row["channel"]))
-            target = vector if channel is RetrievalChannel.VECTOR else full_text
+            target = {
+                RetrievalChannel.VECTOR: vector,
+                RetrievalChannel.FULL_TEXT: full_text,
+                RetrievalChannel.STRUCTURED: structured,
+            }[channel]
             target.append(
                 self._candidate(
                     row,
@@ -224,7 +286,11 @@ class EvidenceSearch:
                     rank=cast(int, row["channel_rank"]),
                 )
             )
-        return RetrievalCandidates(vector=tuple(vector), full_text=tuple(full_text))
+        return RetrievalCandidates(
+            vector=tuple(vector),
+            full_text=tuple(full_text),
+            structured=tuple(structured),
+        )
 
     def _build_statement(
         self,
@@ -233,10 +299,15 @@ class EvidenceSearch:
         query_vector: FloatVector,
         scope: RetrievalScope,
         observed_at: datetime,
+        include_unresolved_conflicts: bool,
     ) -> Select[tuple[object, ...]]:
         latest_pass = aliased(Qualification, name="latest_pass")
         later_check = aliased(Qualification, name="later_check")
         same_time_failure = aliased(Qualification, name="same_time_failure")
+        newer_version = aliased(SourceVersion, name="newer_version")
+        newer_pass = aliased(Qualification, name="newer_pass")
+        newer_later_check = aliased(Qualification, name="newer_later_check")
+        newer_same_time_failure = aliased(Qualification, name="newer_same_time_failure")
 
         has_current_qualification = exists(
             select(1).where(
@@ -271,12 +342,49 @@ class EvidenceSearch:
                 Conflict.status == ConflictStatus.UNRESOLVED,
             )
         )
+        has_newer_current_version = exists(
+            select(1)
+            .select_from(newer_version)
+            .join(newer_pass, newer_pass.version_id == newer_version.id)
+            .where(
+                newer_version.source_id == Source.id,
+                newer_version.fetched_at > SourceVersion.fetched_at,
+                newer_version.extraction_status == ExtractionStatus.COMPLETE,
+                or_(
+                    newer_version.effective_from.is_(None),
+                    newer_version.effective_from <= observed_at,
+                ),
+                or_(
+                    newer_version.effective_to.is_(None),
+                    newer_version.effective_to > observed_at,
+                ),
+                newer_pass.status == QualificationStatus.PASSED,
+                newer_pass.valid_until > observed_at,
+                ~exists(
+                    select(1).where(
+                        newer_later_check.version_id == newer_pass.version_id,
+                        newer_later_check.checked_at > newer_pass.checked_at,
+                    )
+                ),
+                ~exists(
+                    select(1).where(
+                        newer_same_time_failure.version_id == newer_pass.version_id,
+                        newer_same_time_failure.checked_at == newer_pass.checked_at,
+                        newer_same_time_failure.status != QualificationStatus.PASSED,
+                    )
+                ),
+            )
+        )
 
         applicability_filters = [
             Applicability.topic == scope.topic,
             Applicability.institution == scope.institution,
             EvidenceBlock.id == any_(Applicability.evidence_block_ids),
         ]
+        evidence_year = func.nullif(
+            func.btrim(EvidenceBlock.scope["year"].as_string()),
+            "",
+        )
         for column, value in (
             (Applicability.campus, scope.campus),
             (Applicability.student_level, scope.student_level),
@@ -284,11 +392,33 @@ class EvidenceSearch:
             (Applicability.catalog_year, scope.catalog_year),
             (Applicability.term, scope.term),
             (Applicability.session, scope.session),
+            (evidence_year, scope.year),
         ):
             if value is None:
                 applicability_filters.append(column.is_(None))
             else:
                 applicability_filters.append(column == value)
+
+        eligibility_filters = [
+            Source.status == SourceStatus.ELIGIBLE,
+            SourceVersion.extraction_status == ExtractionStatus.COMPLETE,
+            or_(
+                SourceVersion.effective_from.is_(None),
+                SourceVersion.effective_from <= observed_at,
+            ),
+            or_(
+                SourceVersion.effective_to.is_(None),
+                SourceVersion.effective_to > observed_at,
+            ),
+            EvidenceBlock.topic_key == scope.topic,
+            Embedding.model_revision == self._model_revision,
+            Embedding.dimensions == EMBEDDING_DIMENSIONS,
+            has_current_qualification,
+            ~has_newer_current_version,
+            *applicability_filters,
+        ]
+        if not include_unresolved_conflicts:
+            eligibility_filters.append(~has_unresolved_conflict)
 
         eligible = (
             select(
@@ -313,6 +443,7 @@ class EvidenceSearch:
                 Applicability.catalog_year.label("applicability_catalog_year"),
                 Applicability.term.label("applicability_term"),
                 Applicability.session.label("applicability_session"),
+                evidence_year.label("applicability_year"),
                 Embedding.model_revision,
                 Embedding.vector,
             )
@@ -320,24 +451,7 @@ class EvidenceSearch:
             .join(Source, Source.id == SourceVersion.source_id)
             .join(Embedding, Embedding.block_id == EvidenceBlock.id)
             .join(Applicability, Applicability.version_id == SourceVersion.id)
-            .where(
-                Source.status == SourceStatus.ELIGIBLE,
-                SourceVersion.extraction_status == ExtractionStatus.COMPLETE,
-                or_(
-                    SourceVersion.effective_from.is_(None),
-                    SourceVersion.effective_from <= observed_at,
-                ),
-                or_(
-                    SourceVersion.effective_to.is_(None),
-                    SourceVersion.effective_to > observed_at,
-                ),
-                EvidenceBlock.topic_key == scope.topic,
-                Embedding.model_revision == self._model_revision,
-                Embedding.dimensions == EMBEDDING_DIMENSIONS,
-                has_current_qualification,
-                ~has_unresolved_conflict,
-                *applicability_filters,
-            )
+            .where(*eligibility_filters)
             .cte("eligible_evidence")
         )
 
@@ -363,6 +477,7 @@ class EvidenceSearch:
             eligible.c.applicability_catalog_year,
             eligible.c.applicability_term,
             eligible.c.applicability_session,
+            eligible.c.applicability_year,
             eligible.c.model_revision,
         )
         vector_distance = eligible.c.vector.cosine_distance(query_vector)
@@ -403,7 +518,34 @@ class EvidenceSearch:
             .limit(self._candidate_limit)
         )
 
-        combined = union_all(vector_candidates, full_text_candidates).subquery("ranked_candidates")
+        course_codes = _structured_course_codes(query)
+        structured_match = (
+            exists(
+                select(1).where(
+                    CourseRelation.evidence_block_id == eligible.c.evidence_id,
+                    func.upper(CourseRelation.course_code).in_(course_codes),
+                )
+            )
+            if course_codes
+            else false()
+        )
+        structured_candidates = (
+            select(
+                *result_columns,
+                literal(RetrievalChannel.STRUCTURED.value, type_=String()).label("channel"),
+                func.row_number().over(order_by=eligible.c.evidence_id.asc()).label("channel_rank"),
+                literal(1.0).label("ranking_value"),
+            )
+            .where(structured_match)
+            .order_by(eligible.c.evidence_id.asc())
+            .limit(self._candidate_limit)
+        )
+
+        combined = union_all(
+            vector_candidates,
+            full_text_candidates,
+            structured_candidates,
+        ).subquery("ranked_candidates")
         return select(combined).order_by(
             combined.c.channel.asc(),
             combined.c.channel_rank.asc(),
@@ -444,6 +586,7 @@ class EvidenceSearch:
                 catalog_year=cast(str | None, row["applicability_catalog_year"]),
                 term=cast(str | None, row["applicability_term"]),
                 session=cast(str | None, row["applicability_session"]),
+                year=cast(str | None, row["applicability_year"]),
             ),
             model_revision=cast(str, row["model_revision"]),
             channel=channel,
@@ -483,3 +626,10 @@ class EvidenceSearch:
         if value.tzinfo is None or value.utcoffset() is None:
             raise InvalidRetrievalInputError()
         return value.astimezone(UTC)
+
+
+def _structured_course_codes(query: str) -> tuple[str, ...]:
+    codes = dict.fromkeys(
+        f"{subject.upper()} {number.upper()}" for subject, number in _COURSE_CODE_RE.findall(query)
+    )
+    return tuple(codes)[:MAX_STRUCTURED_COURSE_CODES]

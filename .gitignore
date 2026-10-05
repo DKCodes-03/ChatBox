@@ -221,6 +221,8 @@ __marimo__/
 node_modules/
 frontend/dist/
 frontend/coverage/
+frontend/playwright-report/
+frontend/test-results/
 backend/.venv/
 deploy/secrets/
 deploy/models/

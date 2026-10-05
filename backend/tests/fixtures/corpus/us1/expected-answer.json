@@ -1,0 +1,71 @@
+{
+  "fixture_id": "us1-blue-lantern-procedure-v1",
+  "synthetic": true,
+  "question": "How do I complete the synthetic Blue Lantern permit replacement exercise?",
+  "scope": {
+    "topic": "synthetic_procedure",
+    "institution": "Purdue University Northwest"
+  },
+  "supported_case": {
+    "outcome": "answer",
+    "required_explanation_claims": [
+      {
+        "claim": "The exercise applies only to a placard marked TEST ONLY with a blue-lantern symbol.",
+        "evidence_ids": [
+          "30000000-0000-4000-8000-000000000001",
+          "30000000-0000-4000-8000-000000000003"
+        ]
+      },
+      {
+        "claim": "The exercise is complete only after all five steps are finished.",
+        "evidence_ids": ["30000000-0000-4000-8000-000000000002"]
+      }
+    ],
+    "ordered_steps": [
+      {
+        "number": 1,
+        "summary": "Verify the TEST ONLY words and blue-lantern symbol.",
+        "evidence_ids": ["30000000-0000-4000-8000-000000000004"]
+      },
+      {
+        "number": 2,
+        "summary": "Record fixture code BL-204 and open the PDF.",
+        "evidence_ids": ["30000000-0000-4000-8000-000000000004"]
+      },
+      {
+        "number": 3,
+        "summary": "Enter Fixture Student and BL-204 in the synthetic form.",
+        "evidence_ids": ["30000000-0000-4000-8000-000000000005"]
+      },
+      {
+        "number": 4,
+        "summary": "Attach the sample image labeled BLUE-LANTERN-SAMPLE.",
+        "evidence_ids": ["30000000-0000-4000-8000-000000000005"]
+      },
+      {
+        "number": 5,
+        "summary": "Submit through the fixture-only route and retain confirmation TEST-COMPLETE.",
+        "evidence_ids": ["30000000-0000-4000-8000-000000000006"]
+      }
+    ],
+    "required_source_ids": [
+      "10000000-0000-4000-8000-000000000001",
+      "10000000-0000-4000-8000-000000000002",
+      "10000000-0000-4000-8000-000000000003"
+    ]
+  },
+  "partial_case": {
+    "ineligible_source_ids": ["10000000-0000-4000-8000-000000000003"],
+    "outcome": "partial",
+    "supported_step_numbers": [1, 2],
+    "withheld_step_numbers": [3, 4, 5],
+    "required_reason_code": "missing_evidence",
+    "must_not_claim_complete": true
+  },
+  "prohibited_claims": [
+    "This is a real PNW parking procedure.",
+    "A real student account was checked.",
+    "A real permit or transaction was changed."
+  ]
+}
+

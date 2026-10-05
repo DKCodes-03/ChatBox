@@ -1,0 +1,172 @@
+{
+  "fixture_id": "us3-context-and-relationships-v1",
+  "synthetic": true,
+  "observed_at": "2030-09-20T12:00:00Z",
+  "institution": "Purdue University Northwest",
+  "schedule_question": "What are the synthetic add, drop, and refund deadlines?",
+  "schedule_context_profiles": [
+    {
+      "campus": "Hammond",
+      "term": "Fall",
+      "year": "2030",
+      "session": "Full Term",
+      "evidence_id": "32000000-0000-4000-8000-000000000001"
+    },
+    {
+      "campus": "Hammond",
+      "term": "Fall",
+      "year": "2030",
+      "session": "First 8 Weeks",
+      "evidence_id": "32000000-0000-4000-8000-000000000002"
+    },
+    {
+      "campus": "Westville",
+      "term": "Fall",
+      "year": "2030",
+      "session": "Full Term",
+      "evidence_id": "32000000-0000-4000-8000-000000000003"
+    },
+    {
+      "campus": "Hammond",
+      "term": "Spring",
+      "year": "2031",
+      "session": "Full Term",
+      "evidence_id": "32000000-0000-4000-8000-000000000004"
+    }
+  ],
+  "cases": [
+    {
+      "id": "missing-campus",
+      "context": {},
+      "expected_outcome": "clarification",
+      "expected_reason_code": "context_required",
+      "expected_field": "campus",
+      "expected_options": ["Hammond", "Westville"],
+      "must_not_call_generation": true
+    },
+    {
+      "id": "term-mismatch",
+      "context": {"campus": "Hammond", "term": "Summer"},
+      "expected_outcome": "clarification",
+      "expected_reason_code": "context_required",
+      "expected_field": "term",
+      "expected_options": ["Fall", "Spring"],
+      "must_not_select_term": "Summer"
+    },
+    {
+      "id": "hammond-full-term-refund-table",
+      "context": {
+        "campus": "Hammond",
+        "term": "Fall",
+        "year": "2030",
+        "session": "Full Term"
+      },
+      "expected_evidence_id": "32000000-0000-4000-8000-000000000001",
+      "expected_rows": [
+        {
+          "event": "Drop with 100% refund",
+          "deadline": "September 6, 2030 at 5:00 p.m.",
+          "refund_percentage": 100,
+          "time_zone": "Central Time"
+        },
+        {
+          "event": "Drop with 80% refund",
+          "deadline": "September 13, 2030 at 5:00 p.m.",
+          "refund_percentage": 80,
+          "time_zone": "Central Time"
+        },
+        {
+          "event": "Drop with 60% refund",
+          "deadline": "September 27, 2030 at 5:00 p.m.",
+          "refund_percentage": 60,
+          "time_zone": "Central Time"
+        }
+      ],
+      "past_deadlines": [
+        "September 6, 2030 at 5:00 p.m.",
+        "September 13, 2030 at 5:00 p.m."
+      ],
+      "future_deadlines": ["September 27, 2030 at 5:00 p.m."],
+      "must_label_past": true
+    },
+    {
+      "id": "session-selection",
+      "context": {
+        "campus": "Hammond",
+        "term": "Fall",
+        "year": "2030",
+        "session": "First 8 Weeks"
+      },
+      "expected_evidence_id": "32000000-0000-4000-8000-000000000002",
+      "expected_80_percent_deadline": "September 2, 2030 at 5:00 p.m.",
+      "prohibited_full_term_80_percent_deadline": "September 13, 2030 at 5:00 p.m."
+    },
+    {
+      "id": "campus-correction",
+      "old_context": {
+        "campus": "Hammond",
+        "term": "Fall",
+        "year": "2030",
+        "session": "Full Term"
+      },
+      "corrected_context": {
+        "campus": "Westville",
+        "term": "Fall",
+        "year": "2030",
+        "session": "Full Term"
+      },
+      "old_evidence_id": "32000000-0000-4000-8000-000000000001",
+      "corrected_evidence_id": "32000000-0000-4000-8000-000000000003",
+      "expected_corrected_80_percent_deadline": "September 15, 2030 at 5:00 p.m.",
+      "prohibited_old_80_percent_deadline": "September 13, 2030 at 5:00 p.m."
+    },
+    {
+      "id": "term-correction",
+      "old_context": {
+        "campus": "Hammond",
+        "term": "Fall",
+        "year": "2030",
+        "session": "Full Term"
+      },
+      "corrected_context": {
+        "campus": "Hammond",
+        "term": "Spring",
+        "year": "2031",
+        "session": "Full Term"
+      },
+      "old_evidence_id": "32000000-0000-4000-8000-000000000001",
+      "corrected_evidence_id": "32000000-0000-4000-8000-000000000004",
+      "expected_corrected_80_percent_deadline": "February 1, 2031 at 5:00 p.m.",
+      "prohibited_old_80_percent_deadline": "September 13, 2030 at 5:00 p.m."
+    },
+    {
+      "id": "prerequisite-relationships",
+      "question": "What are the synthetic SYN 25000 prerequisites and corequisite?",
+      "context": {
+        "campus": "Hammond",
+        "program": "Synthetic Computing",
+        "student_level": "Undergraduate",
+        "catalog_year": "2030-2031"
+      },
+      "expected_evidence_id": "32000000-0000-4000-8000-000000000005",
+      "expected_prerequisite_expression": {
+        "operator": "or",
+        "groups": [
+          {
+            "operator": "and",
+            "courses": ["SYN 11000", "SYN 12000"],
+            "minimum_grade": "C"
+          },
+          {
+            "operator": "single",
+            "courses": ["SYN 13000"],
+            "minimum_grade": "C"
+          }
+        ]
+      },
+      "expected_corequisites": ["SYN 25001"],
+      "must_not_claim_personal_eligibility": true,
+      "must_not_claim_current_availability": true
+    }
+  ]
+}

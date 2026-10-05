@@ -1,0 +1,513 @@
+{
+  "fixture_id": "us3-context-and-relationships-v1",
+  "synthetic": true,
+  "notice": "SYNTHETIC TEST FIXTURE — NOT PNW POLICY",
+  "rule_version": "fixture-qualification-v1",
+  "observed_at": "2030-09-20T12:00:00Z",
+  "sources": [
+    {
+      "source_id": "12000000-0000-4000-8000-000000000001",
+      "version_id": "22000000-0000-4000-8000-000000000001",
+      "qualification_id": "42000000-0000-4000-8000-000000000001",
+      "url": "https://www.pnw.edu/__test__/us3/hammond-fall-2030-full-term/",
+      "title": "Synthetic Hammond Fall 2030 Full-Term Schedule",
+      "media_type": "html",
+      "fixture_file": "hammond-fall-2030-full-term.html",
+      "content_sha256": "03fbcee58c174ab4f821640bb18b19a11c22040d10a79fa53c62f20977a21bc5",
+      "source_status": "eligible",
+      "extraction_status": "complete",
+      "qualification": {
+        "status": "passed",
+        "checked_at": "2030-09-20T11:00:00Z",
+        "valid_until": "2030-09-21T11:00:00Z",
+        "provenance_supported": true,
+        "applicability_supported": true,
+        "fresh": true,
+        "conflict_free": true
+      },
+      "applicability": {
+        "topic": "synthetic_academic_schedule",
+        "institution": "Purdue University Northwest",
+        "campus": "Hammond",
+        "student_level": null,
+        "program": null,
+        "catalog_year": null,
+        "term": "Fall",
+        "session": "Full Term"
+      },
+      "evidence": [
+        {
+          "evidence_id": "32000000-0000-4000-8000-000000000001",
+          "ordinal": 0,
+          "heading_path": [
+            "Synthetic Hammond Fall 2030 Full-Term Schedule",
+            "Add, drop, and refund deadlines"
+          ],
+          "anchor": "schedule-table",
+          "topic_key": "synthetic_academic_schedule",
+          "scope": {"year": "2030"},
+          "text_contains": [
+            "Hammond — Fall 2030 — Full Term",
+            "September 6, 2030 at 5:00 p.m.",
+            "100%",
+            "September 13, 2030 at 5:00 p.m.",
+            "80%",
+            "September 27, 2030 at 5:00 p.m.",
+            "60%",
+            "Central Time"
+          ],
+          "structured_content": {
+            "type": "table",
+            "caption": "Hammond — Fall 2030 — Full Term",
+            "columns": ["event", "deadline", "refund_percentage", "condition", "time_zone"],
+            "rows": [
+              {
+                "event": "Add a course",
+                "deadline": "August 30, 2030 at 5:00 p.m.",
+                "refund_percentage": null,
+                "condition": "Last day to add a full-term course using the synthetic request form.",
+                "time_zone": "Central Time"
+              },
+              {
+                "event": "Drop with 100% refund",
+                "deadline": "September 6, 2030 at 5:00 p.m.",
+                "refund_percentage": 100,
+                "condition": "The fictional course must be dropped by the stated deadline.",
+                "time_zone": "Central Time"
+              },
+              {
+                "event": "Drop with 80% refund",
+                "deadline": "September 13, 2030 at 5:00 p.m.",
+                "refund_percentage": 80,
+                "condition": "This percentage applies only after the 100% period ends.",
+                "time_zone": "Central Time"
+              },
+              {
+                "event": "Drop with 60% refund",
+                "deadline": "September 27, 2030 at 5:00 p.m.",
+                "refund_percentage": 60,
+                "condition": "This percentage applies only after the 80% period ends.",
+                "time_zone": "Central Time"
+              }
+            ],
+            "footnote": "Applies only to Hammond, Fall 2030, Full Term."
+          }
+        }
+      ],
+      "course_relations": []
+    },
+    {
+      "source_id": "12000000-0000-4000-8000-000000000002",
+      "version_id": "22000000-0000-4000-8000-000000000002",
+      "qualification_id": "42000000-0000-4000-8000-000000000002",
+      "url": "https://www.pnw.edu/__test__/us3/hammond-fall-2030-first-eight-weeks/",
+      "title": "Synthetic Hammond Fall 2030 First 8 Weeks Schedule",
+      "media_type": "html",
+      "fixture_file": "hammond-fall-2030-first-eight-weeks.html",
+      "content_sha256": "d31213a0a06c929c926110577a3b131b83fdec8d34543e3e2f2e60177fdbb261",
+      "source_status": "eligible",
+      "extraction_status": "complete",
+      "qualification": {
+        "status": "passed",
+        "checked_at": "2030-09-20T11:00:00Z",
+        "valid_until": "2030-09-21T11:00:00Z",
+        "provenance_supported": true,
+        "applicability_supported": true,
+        "fresh": true,
+        "conflict_free": true
+      },
+      "applicability": {
+        "topic": "synthetic_academic_schedule",
+        "institution": "Purdue University Northwest",
+        "campus": "Hammond",
+        "student_level": null,
+        "program": null,
+        "catalog_year": null,
+        "term": "Fall",
+        "session": "First 8 Weeks"
+      },
+      "evidence": [
+        {
+          "evidence_id": "32000000-0000-4000-8000-000000000002",
+          "ordinal": 0,
+          "heading_path": [
+            "Synthetic Hammond Fall 2030 First 8 Weeks Schedule",
+            "Add, drop, and refund deadlines"
+          ],
+          "anchor": "schedule-table",
+          "topic_key": "synthetic_academic_schedule",
+          "scope": {"year": "2030"},
+          "text_contains": [
+            "Hammond — Fall 2030 — First 8 Weeks",
+            "August 29, 2030 at 5:00 p.m.",
+            "100%",
+            "September 2, 2030 at 5:00 p.m.",
+            "80%",
+            "September 6, 2030 at 5:00 p.m.",
+            "60%",
+            "Central Time"
+          ],
+          "structured_content": {
+            "type": "table",
+            "caption": "Hammond — Fall 2030 — First 8 Weeks",
+            "columns": ["event", "deadline", "refund_percentage", "condition", "time_zone"],
+            "rows": [
+              {
+                "event": "Add a course",
+                "deadline": "August 27, 2030 at 5:00 p.m.",
+                "refund_percentage": null,
+                "condition": "Last day to add a first-eight-weeks course using the synthetic request form.",
+                "time_zone": "Central Time"
+              },
+              {
+                "event": "Drop with 100% refund",
+                "deadline": "August 29, 2030 at 5:00 p.m.",
+                "refund_percentage": 100,
+                "condition": "The fictional course must be dropped by the stated deadline.",
+                "time_zone": "Central Time"
+              },
+              {
+                "event": "Drop with 80% refund",
+                "deadline": "September 2, 2030 at 5:00 p.m.",
+                "refund_percentage": 80,
+                "condition": "This percentage applies only after the 100% period ends.",
+                "time_zone": "Central Time"
+              },
+              {
+                "event": "Drop with 60% refund",
+                "deadline": "September 6, 2030 at 5:00 p.m.",
+                "refund_percentage": 60,
+                "condition": "This percentage applies only after the 80% period ends.",
+                "time_zone": "Central Time"
+              }
+            ],
+            "footnote": "Applies only to Hammond, Fall 2030, First 8 Weeks."
+          }
+        }
+      ],
+      "course_relations": []
+    },
+    {
+      "source_id": "12000000-0000-4000-8000-000000000003",
+      "version_id": "22000000-0000-4000-8000-000000000003",
+      "qualification_id": "42000000-0000-4000-8000-000000000003",
+      "url": "https://www.pnw.edu/__test__/us3/westville-fall-2030-full-term/",
+      "title": "Synthetic Westville Fall 2030 Full-Term Schedule",
+      "media_type": "html",
+      "fixture_file": "westville-fall-2030-full-term.html",
+      "content_sha256": "b0fb0756daf2e540e23251109f6f3dba6db6c9de0984344bbeb84414e2b70536",
+      "source_status": "eligible",
+      "extraction_status": "complete",
+      "qualification": {
+        "status": "passed",
+        "checked_at": "2030-09-20T11:00:00Z",
+        "valid_until": "2030-09-21T11:00:00Z",
+        "provenance_supported": true,
+        "applicability_supported": true,
+        "fresh": true,
+        "conflict_free": true
+      },
+      "applicability": {
+        "topic": "synthetic_academic_schedule",
+        "institution": "Purdue University Northwest",
+        "campus": "Westville",
+        "student_level": null,
+        "program": null,
+        "catalog_year": null,
+        "term": "Fall",
+        "session": "Full Term"
+      },
+      "evidence": [
+        {
+          "evidence_id": "32000000-0000-4000-8000-000000000003",
+          "ordinal": 0,
+          "heading_path": [
+            "Synthetic Westville Fall 2030 Full-Term Schedule",
+            "Add, drop, and refund deadlines"
+          ],
+          "anchor": "schedule-table",
+          "topic_key": "synthetic_academic_schedule",
+          "scope": {"year": "2030"},
+          "text_contains": [
+            "Westville — Fall 2030 — Full Term",
+            "September 8, 2030 at 5:00 p.m.",
+            "100%",
+            "September 15, 2030 at 5:00 p.m.",
+            "80%",
+            "September 29, 2030 at 5:00 p.m.",
+            "60%",
+            "Central Time"
+          ],
+          "structured_content": {
+            "type": "table",
+            "caption": "Westville — Fall 2030 — Full Term",
+            "columns": ["event", "deadline", "refund_percentage", "condition", "time_zone"],
+            "rows": [
+              {
+                "event": "Add a course",
+                "deadline": "September 1, 2030 at 5:00 p.m.",
+                "refund_percentage": null,
+                "condition": "Last day to add a full-term course using the synthetic request form.",
+                "time_zone": "Central Time"
+              },
+              {
+                "event": "Drop with 100% refund",
+                "deadline": "September 8, 2030 at 5:00 p.m.",
+                "refund_percentage": 100,
+                "condition": "The fictional course must be dropped by the stated deadline.",
+                "time_zone": "Central Time"
+              },
+              {
+                "event": "Drop with 80% refund",
+                "deadline": "September 15, 2030 at 5:00 p.m.",
+                "refund_percentage": 80,
+                "condition": "This percentage applies only after the 100% period ends.",
+                "time_zone": "Central Time"
+              },
+              {
+                "event": "Drop with 60% refund",
+                "deadline": "September 29, 2030 at 5:00 p.m.",
+                "refund_percentage": 60,
+                "condition": "This percentage applies only after the 80% period ends.",
+                "time_zone": "Central Time"
+              }
+            ],
+            "footnote": "Applies only to Westville, Fall 2030, Full Term."
+          }
+        }
+      ],
+      "course_relations": []
+    },
+    {
+      "source_id": "12000000-0000-4000-8000-000000000004",
+      "version_id": "22000000-0000-4000-8000-000000000004",
+      "qualification_id": "42000000-0000-4000-8000-000000000004",
+      "url": "https://www.pnw.edu/__test__/us3/hammond-spring-2031-full-term/",
+      "title": "Synthetic Hammond Spring 2031 Full-Term Schedule",
+      "media_type": "html",
+      "fixture_file": "hammond-spring-2031-full-term.html",
+      "content_sha256": "324496dc3921de8e62eec0f7fd99d3ee22fd5e3e3fc22708d43e132abe7c95c9",
+      "source_status": "eligible",
+      "extraction_status": "complete",
+      "qualification": {
+        "status": "passed",
+        "checked_at": "2030-09-20T11:00:00Z",
+        "valid_until": "2030-09-21T11:00:00Z",
+        "provenance_supported": true,
+        "applicability_supported": true,
+        "fresh": true,
+        "conflict_free": true
+      },
+      "applicability": {
+        "topic": "synthetic_academic_schedule",
+        "institution": "Purdue University Northwest",
+        "campus": "Hammond",
+        "student_level": null,
+        "program": null,
+        "catalog_year": null,
+        "term": "Spring",
+        "session": "Full Term"
+      },
+      "evidence": [
+        {
+          "evidence_id": "32000000-0000-4000-8000-000000000004",
+          "ordinal": 0,
+          "heading_path": [
+            "Synthetic Hammond Spring 2031 Full-Term Schedule",
+            "Add, drop, and refund deadlines"
+          ],
+          "anchor": "schedule-table",
+          "topic_key": "synthetic_academic_schedule",
+          "scope": {"year": "2031"},
+          "text_contains": [
+            "Hammond — Spring 2031 — Full Term",
+            "January 25, 2031 at 5:00 p.m.",
+            "100%",
+            "February 1, 2031 at 5:00 p.m.",
+            "80%",
+            "February 15, 2031 at 5:00 p.m.",
+            "60%",
+            "Central Time"
+          ],
+          "structured_content": {
+            "type": "table",
+            "caption": "Hammond — Spring 2031 — Full Term",
+            "columns": ["event", "deadline", "refund_percentage", "condition", "time_zone"],
+            "rows": [
+              {
+                "event": "Add a course",
+                "deadline": "January 18, 2031 at 5:00 p.m.",
+                "refund_percentage": null,
+                "condition": "Last day to add a full-term course using the synthetic request form.",
+                "time_zone": "Central Time"
+              },
+              {
+                "event": "Drop with 100% refund",
+                "deadline": "January 25, 2031 at 5:00 p.m.",
+                "refund_percentage": 100,
+                "condition": "The fictional course must be dropped by the stated deadline.",
+                "time_zone": "Central Time"
+              },
+              {
+                "event": "Drop with 80% refund",
+                "deadline": "February 1, 2031 at 5:00 p.m.",
+                "refund_percentage": 80,
+                "condition": "This percentage applies only after the 100% period ends.",
+                "time_zone": "Central Time"
+              },
+              {
+                "event": "Drop with 60% refund",
+                "deadline": "February 15, 2031 at 5:00 p.m.",
+                "refund_percentage": 60,
+                "condition": "This percentage applies only after the 80% period ends.",
+                "time_zone": "Central Time"
+              }
+            ],
+            "footnote": "Applies only to Hammond, Spring 2031, Full Term."
+          }
+        }
+      ],
+      "course_relations": []
+    },
+    {
+      "source_id": "12000000-0000-4000-8000-000000000005",
+      "version_id": "22000000-0000-4000-8000-000000000005",
+      "qualification_id": "42000000-0000-4000-8000-000000000005",
+      "url": "https://www.pnw.edu/__test__/us3/synthetic-computing-prerequisites/",
+      "title": "Synthetic Computing Prerequisites",
+      "media_type": "html",
+      "fixture_file": "synthetic-computing-prerequisites.html",
+      "content_sha256": "db8eeeb6eb77dce62b5723332f79603d9b3ad2a02ee89444fc7aab784db9ca9a",
+      "source_status": "eligible",
+      "extraction_status": "complete",
+      "qualification": {
+        "status": "passed",
+        "checked_at": "2030-09-20T11:00:00Z",
+        "valid_until": "2030-09-21T11:00:00Z",
+        "provenance_supported": true,
+        "applicability_supported": true,
+        "fresh": true,
+        "conflict_free": true
+      },
+      "applicability": {
+        "topic": "synthetic_course_prerequisites",
+        "institution": "Purdue University Northwest",
+        "campus": "Hammond",
+        "student_level": "Undergraduate",
+        "program": "Synthetic Computing",
+        "catalog_year": "2030-2031",
+        "term": null,
+        "session": null
+      },
+      "evidence": [
+        {
+          "evidence_id": "32000000-0000-4000-8000-000000000005",
+          "ordinal": 0,
+          "heading_path": [
+            "SYN 25000 — Synthetic Systems",
+            "Published requirements for the 2030-2031 catalog"
+          ],
+          "anchor": "requirements",
+          "topic_key": "synthetic_course_prerequisites",
+          "scope": {},
+          "text_contains": [
+            "SYN 11000 with a minimum grade of C",
+            "SYN 12000 with a minimum grade of C",
+            "SYN 13000 with a minimum grade of C",
+            "corequisite is SYN 25001",
+            "does not establish a student's eligibility"
+          ],
+          "structured_content": {
+            "type": "course_requirements",
+            "course_code": "SYN 25000",
+            "prerequisite_expression": {
+              "operator": "or",
+              "groups": [
+                {
+                  "operator": "and",
+                  "requirements": [
+                    {"course_code": "SYN 11000", "minimum_grade": "C"},
+                    {"course_code": "SYN 12000", "minimum_grade": "C"}
+                  ]
+                },
+                {
+                  "operator": "single",
+                  "requirements": [
+                    {"course_code": "SYN 13000", "minimum_grade": "C"}
+                  ]
+                }
+              ]
+            },
+            "corequisites": [
+              {"course_code": "SYN 25001", "concurrent_enrollment_allowed": true}
+            ],
+            "limitations": [
+              "Does not establish personal eligibility.",
+              "Does not establish current course availability."
+            ]
+          }
+        }
+      ],
+      "course_relations": [
+        {
+          "relation_id": "52000000-0000-4000-8000-000000000001",
+          "evidence_block_id": "32000000-0000-4000-8000-000000000005",
+          "course_code": "SYN 25000",
+          "related_course_code": "SYN 11000",
+          "relation": "prerequisite",
+          "group_expression": {
+            "operator": "or",
+            "group": 1,
+            "group_operator": "and",
+            "minimum_grade": "C"
+          },
+          "catalog_year": "2030-2031",
+          "campus": "Hammond"
+        },
+        {
+          "relation_id": "52000000-0000-4000-8000-000000000002",
+          "evidence_block_id": "32000000-0000-4000-8000-000000000005",
+          "course_code": "SYN 25000",
+          "related_course_code": "SYN 12000",
+          "relation": "prerequisite",
+          "group_expression": {
+            "operator": "or",
+            "group": 1,
+            "group_operator": "and",
+            "minimum_grade": "C"
+          },
+          "catalog_year": "2030-2031",
+          "campus": "Hammond"
+        },
+        {
+          "relation_id": "52000000-0000-4000-8000-000000000003",
+          "evidence_block_id": "32000000-0000-4000-8000-000000000005",
+          "course_code": "SYN 25000",
+          "related_course_code": "SYN 13000",
+          "relation": "prerequisite",
+          "group_expression": {
+            "operator": "or",
+            "group": 2,
+            "group_operator": "single",
+            "minimum_grade": "C"
+          },
+          "catalog_year": "2030-2031",
+          "campus": "Hammond"
+        },
+        {
+          "relation_id": "52000000-0000-4000-8000-000000000004",
+          "evidence_block_id": "32000000-0000-4000-8000-000000000005",
+          "course_code": "SYN 25000",
+          "related_course_code": "SYN 25001",
+          "relation": "corequisite",
+          "group_expression": {
+            "operator": "and",
+            "concurrent_enrollment_allowed": true
+          },
+          "catalog_year": "2030-2031",
+          "campus": "Hammond"
+        }
+      ]
+    }
+  ]
+}

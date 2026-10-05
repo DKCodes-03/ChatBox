@@ -252,6 +252,11 @@ that it becomes usable; fail an eligibility check and verify that it cannot supp
   unavailable for restoration or staff review; retained statistics and logs contain no
   conversation content or student identifiers. Verify both explicit termination and inactivity
   expiry, including a message before the timeout and one at or after the timeout.
+- **FR-015**: The demo offline RAG pipeline MUST ingest at least three real public PNW documents
+  through the production parse, semantic-chunk, embedding, automated-qualification, and
+  PostgreSQL/pgvector storage path. The checked-in demo manifest MUST identify the exact source
+  URLs, and validation MUST show a persisted version and at least one embedding for each source.
+  Acceptance: run the `ingest-pnw-demo` Compose job and inspect its bounded JSON result.
 
 ### Key Entities *(include if feature involves data)*
 
@@ -300,6 +305,8 @@ questions. Reviewers establish expected answers and permitted sources before eva
   student identifiers. Checks MUST cover “End chat,” expiry after 30 minutes without a student
   message, inactivity reset by student messages only, and a new conversation after expiry.
   Validation MUST include logs and services processing conversations.
+- **SC-009**: One demo pipeline run persists at least three distinct real PNW source versions and
+  at least one normalized 384-dimensional pgvector embedding for each source.
 
 ## Assumptions
 

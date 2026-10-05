@@ -18,15 +18,15 @@
 ## Phase 2: Foundational
 
 - [X] T009 Enable pgvector and create the initial migration configuration in `backend/alembic.ini` and `backend/migrations/versions/001_enable_pgvector.py`.
-- [X] T010 [P] Implement `Source`, `SourceVersion`, `Qualification`, `Applicability`, `EvidenceBlock`, `Embedding`, `CourseRelation`, `OfficeReferral`, `Conflict`, `SourceEvent`, `IngestionRun`, and `AggregateMetric` models in `backend/app/models/` with UUIDs, timezone-aware timestamps, and the constraints in `data-model.md`.
-- [X] T011 Create PostgreSQL constraints and indexes for canonical URLs, content hashes, qualification freshness, applicability filters, parent evidence, `vector(384)`, and aggregate-only metrics in `backend/migrations/versions/002_source_schema.py`.
+- [X] T010 [P] Implement `Source`, `SourceVersion`, `SourceLink`, `Qualification`, `Applicability`, `EvidenceBlock`, `Embedding`, `CourseRelation`, `OfficeReferral`, `Conflict`, `SourceEvent`, `IngestionRun`, and `AggregateMetric` models in `backend/app/models/` with UUIDs, timezone-aware timestamps, and the constraints in `data-model.md`.
+- [X] T011 Create PostgreSQL constraints and indexes for canonical URLs, content hashes, linked-source provenance, qualification freshness, applicability filters, parent evidence, `vector(384)`, and aggregate-only metrics in `backend/migrations/versions/002_source_schema.py`, and provision restricted runtime/governance grants through `deploy/provision-database-roles.sh` and `deploy/compose.yaml`.
 - [X] T012 [P] Add typed settings for database, Gemini model/API-key secret path, provider mode, source bounds, quotas, limits, and 24-hour qualification expiry in `backend/app/config.py`.
 - [X] T013 [P] Create FastAPI startup, routing, dependency injection, safe error envelopes, request limits, origin validation, and no-store headers in `backend/app/main.py` and `backend/app/api/`.
 - [X] T014 [P] Implement bounded aggregate metrics without message text, identifiers, URLs, IP addresses, or query strings in `backend/app/metrics/service.py`.
 - [X] T015 Implement in-memory sessions with opaque 256-bit tokens, generation locks, cancellation handles, End chat, and 30-minute student-message-only expiry in `backend/app/sessions/`.
 - [X] T016 Implement normalized MiniLM embeddings, temporary query-vector cleanup, and the 220-wordpiece evidence-unit limit in `backend/app/retrieval/embeddings.py`.
 - [X] T017 Implement the provider-neutral LLM adapter and structured answer schema in `backend/app/generation/adapter.py` and `backend/app/generation/schemas.py`.
-- [X] T018 Implement stateless Gemini `gemini-2.5-flash-lite` calls with structured output, 512-token output bound, no provider conversation IDs/caching, and Docker-secret API keys in `backend/app/generation/gemini.py`.
+- [X] T018 Implement stateless Gemini `gemini-3.5-flash-lite` calls with structured output, 512-token output bound, no provider conversation IDs/caching, and Docker-secret API keys in `backend/app/generation/gemini.py`.
 - [X] T019 [P] Implement the optional local llama.cpp fallback and provider cleanup/quarantine hooks in `backend/app/generation/local.py`.
 - [X] T020 Implement quota, timeout, invalid-payload, data-policy, and fallback errors as safe limitations or sanitized 503 responses in `backend/app/generation/errors.py`.
 - [X] T021 Implement exact pgvector plus PostgreSQL full-text retrieval over eligible, fresh, applicable, non-conflicting evidence in `backend/app/retrieval/search.py`.
@@ -37,65 +37,65 @@
 
 **Independent test**: Load a synthetic qualifying procedure spanning HTML, a linked page, and a PDF; ask through the API/UI; verify one coherent answer with ordered steps and citations.
 
-- [ ] T024 [P] [US1] Implement typed session/message schemas matching `contracts/http-api.md` in `backend/app/api/schemas.py`.
-- [ ] T025 [US1] Implement `POST /api/v1/sessions`, `GET /api/v1/session`, `DELETE /api/v1/session`, and `POST /api/v1/messages` in `backend/app/api/routes.py`.
-- [ ] T026 [US1] Implement bounded prompt construction using only session context, eligible evidence IDs/content, and citation instructions in `backend/app/generation/prompt.py`.
-- [ ] T027 [P] [US1] Build the React chat page, composer, loading state, answer segments, citation links, and clarification/error rendering in `frontend/src/chat/`.
-- [ ] T028 [P] [US1] Implement the typed same-origin frontend client with no persistent browser storage or automatic cross-session retry in `frontend/src/api/client.ts`.
-- [ ] T029 [US1] Add End chat, expiry, visibility/resume cleanup, and session-ended messaging in `frontend/src/chat/session.ts` and `frontend/src/chat/ChatPage.tsx`.
-- [ ] T030 [US1] Add synthetic multi-document procedure fixtures in `backend/tests/fixtures/corpus/us1/`.
-- [ ] T031 [US1] Add supported-answer contract/integration tests for ordered steps, complete evidence, source citations, and partial supported/unknown claims in `backend/tests/contract/test_messages.py` and `backend/tests/integration/test_supported_answers.py`.
-- [ ] T032 [US1] Add Playwright coverage for submitting a question, reading citations, and ending a chat in `frontend/tests/e2e/supported-answer.spec.ts`.
+- [X] T024 [P] [US1] Implement typed session/message schemas matching `contracts/http-api.md` in `backend/app/api/schemas.py`.
+- [X] T025 [US1] Implement `POST /api/v1/sessions`, `GET /api/v1/session`, `DELETE /api/v1/session`, and `POST /api/v1/messages` in `backend/app/api/routes.py`.
+- [X] T026 [US1] Implement bounded prompt construction using only session context, eligible evidence IDs/content, and citation instructions in `backend/app/generation/prompt.py`.
+- [X] T027 [P] [US1] Build the React chat page, composer, loading state, answer segments, citation links, and clarification/error rendering in `frontend/src/chat/`.
+- [X] T028 [P] [US1] Implement the typed same-origin frontend client with no persistent browser storage or automatic cross-session retry in `frontend/src/api/client.ts`.
+- [X] T029 [US1] Add End chat, expiry, visibility/resume cleanup, and session-ended messaging in `frontend/src/chat/session.ts` and `frontend/src/chat/ChatPage.tsx`.
+- [X] T030 [US1] Add synthetic multi-document procedure fixtures in `backend/tests/fixtures/corpus/us1/`.
+- [X] T031 [US1] Add supported-answer contract/integration tests for ordered steps, complete evidence, source citations, and partial supported/unknown claims in `backend/tests/contract/test_messages.py` and `backend/tests/integration/test_supported_answers.py`.
+- [X] T032 [US1] Add Playwright coverage for submitting a question, reading citations, and ending a chat in `frontend/tests/e2e/supported-answer.spec.ts`.
 
 ## Phase 4: User Story 2 - Fail Safely and Refer Correctly (P1)
 
 **Independent test**: Exercise missing, stale, quarantined, conflicting, unavailable, personal-case, and Gemini-failure fixtures; verify no unsupported claim or invented contact.
 
-- [ ] T033 [P] [US2] Implement reason-coded limitations and eligible office-referral assembly in `backend/app/generation/safe_failure.py`.
-- [ ] T034 [P] [US2] Add adverse-source fixtures in `backend/tests/fixtures/corpus/us2/`.
-- [ ] T035 [US2] Add integration tests for unsupported claims, conflicts, missing referrals, personal cases, source outages, Gemini 429s, timeouts, and malformed responses in `backend/tests/integration/test_safe_failure.py` and `backend/tests/integration/test_llm_failures.py`.
-- [ ] T036 [US2] Add frontend limitation, referral, provider-outage, retry, and no-automatic-resubmission states in `frontend/src/chat/FailureMessage.tsx`.
-- [ ] T037 [US2] Add Playwright coverage for safe limitations, verified referrals, provider failures, and personal-case boundaries in `frontend/tests/e2e/failure-behavior.spec.ts`.
+- [X] T033 [P] [US2] Implement reason-coded limitations and eligible office-referral assembly in `backend/app/generation/safe_failure.py`.
+- [X] T034 [P] [US2] Add adverse-source fixtures in `backend/tests/fixtures/corpus/us2/`.
+- [X] T035 [US2] Add integration tests for unsupported claims, conflicts, missing referrals, personal cases, source outages, Gemini 429s, timeouts, and malformed responses in `backend/tests/integration/test_safe_failure.py` and `backend/tests/integration/test_llm_failures.py`.
+- [X] T036 [US2] Add frontend limitation, referral, provider-outage, retry, and no-automatic-resubmission states in `frontend/src/chat/FailureMessage.tsx`.
+- [X] T037 [US2] Add Playwright coverage for safe limitations, verified referrals, provider failures, and personal-case boundaries in `frontend/tests/e2e/failure-behavior.spec.ts`.
 
 ## Phase 5: User Story 3 - Get the Right Context (P1)
 
 **Independent test**: Load contrasting campus and term fixtures, omit context, correct it in a follow-up, and verify selected evidence and deadline relationships.
 
-- [ ] T038 [P] [US3] Implement campus, term, year, session, program, student-level, and catalog-year context models and validation in `backend/app/context/`.
-- [ ] T039 [US3] Implement context-required responses and corrected-context requery behavior in `backend/app/retrieval/context_gate.py`.
-- [ ] T040 [P] [US3] Add table, deadline, campus, term, session, and prerequisite fixtures in `backend/tests/fixtures/corpus/us3/`.
-- [ ] T041 [US3] Add integration tests for missing context, term mismatch, past deadlines, refund rows, corrections, and prerequisite relationships in `backend/tests/integration/test_context_retrieval.py`.
-- [ ] T042 [US3] Add context prompts, selected-context indicators, correction controls, and past-deadline labels in `frontend/src/chat/ContextPrompt.tsx` and `frontend/src/chat/AnswerContext.tsx`.
-- [ ] T043 [US3] Add Playwright coverage for clarification, correction, table citations, and context continuity in `frontend/tests/e2e/context.spec.ts`.
+- [X] T038 [P] [US3] Implement campus, term, year, session, program, student-level, and catalog-year context models and validation in `backend/app/context/`.
+- [X] T039 [US3] Implement context-required responses and corrected-context requery behavior in `backend/app/retrieval/context_gate.py`.
+- [X] T040 [P] [US3] Add table, deadline, campus, term, session, and prerequisite fixtures in `backend/tests/fixtures/corpus/us3/`.
+- [X] T041 [US3] Add integration tests for missing context, term mismatch, past deadlines, refund rows, corrections, and prerequisite relationships in `backend/tests/integration/test_context_retrieval.py`.
+- [X] T042 [US3] Add context prompts, selected-context indicators, correction controls, and past-deadline labels in `frontend/src/chat/ContextPrompt.tsx` and `frontend/src/chat/AnswerContext.tsx`.
+- [X] T043 [US3] Add Playwright coverage for clarification, correction, table citations, and context continuity in `frontend/tests/e2e/context.spec.ts`.
 
 ## Phase 6: User Story 4 - Explain Academic Requirements (P2)
 
 **Independent test**: Load catalog fixtures with AND/OR prerequisites and plan-of-study steps; verify preserved relationships and no personal eligibility claims.
 
-- [ ] T044 [P] [US4] Implement prerequisite parsing and retrieval preserving AND/OR groups, grades, corequisites, campus, and catalog year in `backend/app/academic/prerequisites.py`.
-- [ ] T045 [P] [US4] Implement program, graduate-admission, plan-of-study, graduation, and current-availability scope rules in `backend/app/academic/programs.py`.
-- [ ] T046 [US4] Add catalog, prerequisite, plan-of-study, graduation, incomplete, and typical-offering fixtures in `backend/tests/fixtures/corpus/us4/`.
-- [ ] T047 [US4] Add integration tests for program existence, prerequisite summaries, plans, catalog scope, and no-current-availability inference in `backend/tests/integration/test_academic_guidance.py`.
-- [ ] T048 [US4] Add prerequisite-group, source-condition, advisor-boundary, and referral presentation in `frontend/src/chat/AcademicAnswer.tsx`.
-- [ ] T049 [US4] Add Playwright coverage for prerequisite and plan-of-study explanations in `frontend/tests/e2e/academic-guidance.spec.ts`.
+- [X] T044 [P] [US4] Implement prerequisite parsing and retrieval preserving AND/OR groups, grades, corequisites, campus, and catalog year in `backend/app/academic/prerequisites.py`.
+- [X] T045 [P] [US4] Implement program, graduate-admission, plan-of-study, graduation, and current-availability scope rules in `backend/app/academic/programs.py`.
+- [X] T046 [US4] Add catalog, prerequisite, plan-of-study, graduation, incomplete, and typical-offering fixtures in `backend/tests/fixtures/corpus/us4/`.
+- [X] T047 [US4] Add integration tests for program existence, prerequisite summaries, plans, catalog scope, and no-current-availability inference in `backend/tests/integration/test_academic_guidance.py`.
+- [X] T048 [US4] Add prerequisite-group, source-condition, advisor-boundary, and referral presentation in `frontend/src/chat/AcademicAnswer.tsx`.
+- [X] T049 [US4] Add Playwright coverage for prerequisite and plan-of-study explanations in `frontend/tests/e2e/academic-guidance.spec.ts`.
 
 ## Phase 7: User Story 5 - Qualify and Track RAG Sources (P1)
 
 **Independent test**: Ingest a qualifying source without a reviewer, reject failed/incomplete sources, load vectors, expire/requalify content, and verify retrieval eligibility.
 
-- [ ] T050 [P] [US5] Implement bounded source discovery, redirect/private-network checks, crawl depth 3, 100-URL/run, 20 MiB/document, and canonical URLs in `backend/app/ingestion/discovery.py`.
-- [ ] T051 [P] [US5] Implement HTML/PDF extraction preserving headings, links, page anchors, tables, rows, footnotes, campus labels, and catalog context in `backend/app/ingestion/extract.py`.
-- [ ] T052 [US5] Implement immutable versions, content hashes, extraction states, and reason-coded quarantine in `backend/app/ingestion/versions.py`.
-- [ ] T053 [US5] Implement automated provenance, completeness, applicability, effective-date, freshness, and conflict qualification in `backend/app/ingestion/qualification.py`.
-- [ ] T054 [US5] Implement semantic chunking at headings, complete table rows, and prerequisite-group boundaries with parent/version IDs in `backend/app/ingestion/chunking.py`.
-- [ ] T055 [US5] Implement transactional normalized MiniLM embedding and pgvector loading with recorded model revision/dimensions in `backend/app/ingestion/indexer.py`.
-- [ ] T056 [US5] Implement exact vector/full-text/structured retrieval, metadata filters, rank fusion, and maximum-eight evidence selection in `backend/app/retrieval/search.py`.
-- [ ] T057 [US5] Implement daily refresh, 24-hour expiry, material-change requalification, withdrawal, supersession, and final answer-authorization locking in `backend/app/ingestion/refresh.py` and `backend/app/retrieval/authorization.py`.
-- [ ] T058 [P] [US5] Implement source inspect, qualify, withdraw, restore, refresh-due, and evaluation commands in `backend/app/cli.py` matching `contracts/source-operations.md`.
-- [ ] T059 [US5] Add linked-page, PDF, malformed-table, duplicate, campus, prerequisite, stale, and conflict fixtures in `backend/tests/fixtures/corpus/ingestion/`.
-- [ ] T060 [US5] Add full vector-preparation integration tests for discover, fetch, hash, extract, qualify, chunk, embed, transactional load, validate, publish, refresh, expire, and requalify in `backend/tests/integration/test_vector_pipeline.py`.
-- [ ] T061 [US5] Add retrieval authorization tests for qualification filters, exact pgvector, full-text fusion, supersession, withdrawal during generation, and no query-vector persistence in `backend/tests/integration/test_retrieval_authorization.py`.
-- [ ] T062 [US5] Add CLI contract tests for bounds, reason codes, idempotent imports, failed refresh, withdrawal, and restore in `backend/tests/contract/test_source_operations.py`.
+- [X] T050 [P] [US5] Implement bounded source discovery, redirect/private-network checks, crawl depth 3, 100-URL/run, 20 MiB/document, and canonical URLs in `backend/app/ingestion/discovery.py`.
+- [X] T051 [P] [US5] Implement HTML/PDF extraction preserving headings, links, page anchors, tables, rows, footnotes, campus labels, and catalog context in `backend/app/ingestion/extract.py`.
+- [X] T052 [US5] Implement immutable versions, content hashes, extraction states, and reason-coded quarantine in `backend/app/ingestion/versions.py`.
+- [X] T053 [US5] Implement automated provenance, completeness, applicability, effective-date, freshness, and conflict qualification in `backend/app/ingestion/qualification.py`.
+- [X] T054 [US5] Implement semantic chunking at headings, complete table rows, and prerequisite-group boundaries with parent/version IDs in `backend/app/ingestion/chunking.py`.
+- [X] T055 [US5] Implement transactional normalized MiniLM embedding and pgvector loading with recorded model revision/dimensions in `backend/app/ingestion/indexer.py`.
+- [X] T056 [US5] Implement exact vector/full-text/structured retrieval, metadata filters, rank fusion, and maximum-eight evidence selection in `backend/app/retrieval/search.py`.
+- [X] T057 [US5] Implement daily refresh, 24-hour expiry, material-change requalification, withdrawal, supersession, and final answer-authorization locking in `backend/app/ingestion/refresh.py` and `backend/app/retrieval/authorization.py`.
+- [X] T058 [P] [US5] Implement source inspect, qualify, withdraw, restore, refresh-due, and evaluation commands in `backend/app/cli.py` matching `contracts/source-operations.md`.
+- [X] T059 [US5] Add linked-page, PDF, malformed-table, duplicate, campus, prerequisite, stale, and conflict fixtures in `backend/tests/fixtures/corpus/ingestion/`.
+- [X] T060 [US5] Add full vector-preparation integration tests for discover, fetch, hash, extract, qualify, chunk, embed, transactional load, validate, publish, refresh, expire, and requalify in `backend/tests/integration/test_vector_pipeline.py`.
+- [X] T061 [US5] Add retrieval authorization tests for qualification filters, exact pgvector, full-text fusion, supersession, withdrawal during generation, and no query-vector persistence in `backend/tests/integration/test_retrieval_authorization.py`.
+- [X] T062 [US5] Add CLI contract tests for bounds, reason codes, idempotent imports, failed refresh, withdrawal, and restore in `backend/tests/contract/test_source_operations.py`.
 
 ## Phase 8: Polish and Cross-Cutting Validation
 
@@ -134,3 +134,22 @@
 
 All tasks follow the required checklist format: checkbox, sequential ID, optional `[P]`, required
 story label for story tasks, and an exact file path.
+
+## Phase 9: Convergence
+
+- [X] T070 [US1] CRITICAL: Implement and production-wire a concrete `MessageProcessor` that coordinates eligible retrieval, bounded prompt construction, Gemini/optional fallback generation, answer validation, citation/response assembly, cancellation, and sanitized failure handling in `backend/app/api/processor.py`, `backend/app/api/dependencies.py`, and `backend/app/main.py` per FR-001–FR-004, FR-008, US1/AC1–4, and the plan's FastAPI request-coordinator decision (missing).
+- [X] T071 [US1] Add a deterministic synthetic deployment path with `test-seed` and `inference-fake` services under a Compose `test` profile, loading the US1 HTML/linked-page/PDF evidence through the same database and serving boundaries used by the API in `deploy/compose.yaml` and `backend/tests/fixtures/corpus/us1/` per the US1 Independent Test and plan testing/deployment decisions (missing).
+- [X] T072 [US1] Add a full-stack supported-answer test that drives the React UI through the real FastAPI routes and production message coordinator against the deterministic synthetic deployment, without intercepting `/api/v1/*`, in `frontend/tests/e2e/supported-answer.spec.ts` and the supporting integration harness per the US1 Independent Test and T031–T032 (partial).
+
+## Phase 10: Convergence
+
+- [X] T073 [US4] CRITICAL: Wire `AcademicScopeRules` and `PrerequisiteRepository` into the production retrieval/message coordinator so program, procedure, prerequisite, and current-availability answers are authorized by structured eligible evidence and unsupported academic conclusions fail safely in `backend/app/api/processor.py` and `backend/app/academic/` per FR-003–FR-006, FR-008–FR-009, FR-012, and US4/AC1–3 (missing).
+- [X] T074 [US4] Add production-path integration and Playwright coverage for explicit program existence, incomplete evidence that cannot prove absence, graduate-admission and graduation boundaries, preserved prerequisite relationships, and typical offering that cannot confirm current availability in `backend/tests/integration/test_academic_guidance.py`, `frontend/tests/e2e/academic-guidance.spec.ts`, and the deterministic synthetic deployment fixtures per the US4 Independent Test and T047–T049 (partial).
+
+## Phase 11: Convergence
+
+- [X] T075 [US5] CRITICAL: Persist bounded manifest source configuration and implement idempotent `sources import --manifest` candidate creation in `backend/app/models/sources.py`, `backend/migrations/versions/004_source_ingestion_configuration.py`, and `backend/app/ingestion/pipeline.py` per FR-010 and `contracts/source-operations.md`.
+- [X] T076 [US5] CRITICAL: Implement a production ingestion coordinator that performs bounded discovery, HTML/PDF extraction, immutable versioning, semantic chunking, normalized embedding/index loading, automated qualification, linked-source provenance, and changed-content requalification in `backend/app/ingestion/pipeline.py` per FR-008, FR-010, FR-011, US5/AC1–3, and the plan's RAG vector-preparation workflow.
+- [X] T077 [US5] Wire `sources import`, `sources fetch`, and pipeline-backed `refresh-due` operations through `backend/app/cli.py` and the scheduled `ingest` service in `deploy/compose.yaml` per `contracts/source-operations.md` and the plan's scheduled-ingestion decision.
+- [X] T078 [US5] Add PostgreSQL/pgvector contract and integration coverage that drives the real CLI and production ingestion coordinator for idempotent manifest imports, linked HTML/PDF ingestion, incomplete-source quarantine, vector publication, failed refresh, material change, withdrawal, restore, and requalification in `backend/tests/contract/test_source_operations.py`, `backend/tests/integration/test_ingestion_pipeline.py`, and `deploy/compose.yaml` per the Phase 7 Independent Test, T060, and T062.
+- [X] T079 [US5] Ingest and verify at least three real public PNW documents through the production offline parse, chunk, MiniLM embedding, automated qualification, and PostgreSQL/pgvector path using `corpus/pnw-demo-sources.json`, `backend/app/demo_ingest.py`, and the `ingest-pnw-demo` service in `deploy/compose.yaml` per FR-015 and SC-009.

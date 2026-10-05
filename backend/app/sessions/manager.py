@@ -16,6 +16,7 @@ from typing import Never
 from pydantic import SecretStr
 
 from app.config import Settings
+from app.context import ContextValidationError, validate_context
 from app.sessions.exceptions import (
     GenerationCancelledError,
     GenerationConflictError,
@@ -42,10 +43,6 @@ DEFAULT_IDLE_TIMEOUT = timedelta(minutes=30)
 DEFAULT_TOMBSTONE_TTL = timedelta(seconds=60)
 DEFAULT_RATE_WINDOW = timedelta(minutes=1)
 DEFAULT_SWEEP_INTERVAL_SECONDS = 1.0
-ALLOWED_CONTEXT_FIELDS = frozenset(
-    {"campus", "term", "year", "session", "program", "student_level", "catalog_year"}
-)
-MAX_CONTEXT_VALUE_CHARACTERS = 255
 MAX_ASSISTANT_MESSAGE_CHARACTERS = 16_384
 
 Clock = Callable[[], datetime]
@@ -453,17 +450,10 @@ class SessionManager:
 
     @staticmethod
     def _validate_context(context: Mapping[str, str]) -> dict[str, str]:
-        validated: dict[str, str] = {}
-        for key, value in context.items():
-            if (
-                key not in ALLOWED_CONTEXT_FIELDS
-                or not isinstance(value, str)
-                or not value
-                or len(value) > MAX_CONTEXT_VALUE_CHARACTERS
-            ):
-                raise InvalidSessionInputError()
-            validated[key] = value
-        return validated
+        try:
+            return validate_context(context).as_mapping()
+        except ContextValidationError:
+            raise InvalidSessionInputError() from None
 
     def _cancel_pending(self, leases: list[GenerationLease]) -> None:
         failed = False

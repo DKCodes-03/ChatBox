@@ -62,7 +62,7 @@ Sources: [PostgreSQL isolation](https://www.postgresql.org/docs/current/transact
 ## 4. Hosted generation, local fallback and embeddings
 
 **Decision:** Use Google Gemini through the `google-genai` Python SDK with the stable
-`gemini-2.5-flash-lite` model as the initial hosted LLM integration. Use stateless generate-content
+`gemini-3.5-flash-lite` model as the initial hosted LLM integration. Use stateless generate-content
 requests with a bounded 512-token output, structured response schema, no provider conversation
 IDs, and no optional caching. Keep llama.cpp with Qwen/Qwen3-4B-GGUF Q4_K_M as a local fallback.
 Use local Sentence Transformers all-MiniLM-L6-v2 embeddings. Store normalized 384-dimensional
@@ -70,8 +70,9 @@ corpus vectors. Embedding retrieval units stay within 220 model wordpieces inclu
 retain complete parent passages, table rows and footnotes for answer evidence. Oversized tables
 are split by semantic rows, never by arbitrary characters.
 
-**Rationale:** Gemini 2.5 Flash-Lite is documented as a fast, budget-oriented stable model and
-supports structured outputs. The free/unpaid tier has variable project quotas and Google states
+**Rationale:** Gemini 3.5 Flash-Lite is documented as a fast, budget-oriented stable model and
+supports structured outputs. Google limits Gemini 2.5 access for new projects and recommends
+3.5 Flash-Lite for new integrations. The free/unpaid tier has variable project quotas and Google states
 that unpaid-service content may be used to improve products; therefore it is a development
 option, not an automatic production privacy approval. Paid services or Vertex AI require a
 separate data-handling check, and local inference remains available when external processing is

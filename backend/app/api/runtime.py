@@ -79,7 +79,9 @@ class RuntimeReadinessProbe:
             return False
         try:
             with self._engine.connect() as connection:
-                eligible_corpus_exists = bool(connection.execute(ELIGIBLE_CORPUS_QUERY).scalar_one())
+                eligible_corpus_exists = bool(
+                    connection.execute(ELIGIBLE_CORPUS_QUERY).scalar_one()
+                )
         except (SQLAlchemyError, OSError, ValueError):
             return False
         if not eligible_corpus_exists:

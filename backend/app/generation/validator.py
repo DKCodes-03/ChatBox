@@ -14,10 +14,10 @@ from typing import Protocol
 from urllib.parse import quote, urlsplit, urlunsplit
 from uuid import UUID
 
+from app.context import ContextField
 from app.generation.schemas import (
     AnswerOutcome,
     AnswerSegment,
-    ContextField,
     ReasonCode,
     SegmentKind,
     StructuredAnswer,
@@ -376,6 +376,7 @@ class AnswerValidator:
         sentences = _sentences(segment.text)
         for sentence in sentences:
             sentence_facts = _facts(sentence)
+            support_text = _claim_support_text(sentence, sentence_facts, observed_at.date())
             if not _facts_share_evidence(sentence_facts, referenced):
                 failure = (
                     ValidationFailureCode.DATE_MISMATCH
@@ -400,13 +401,16 @@ class AnswerValidator:
                 known_context_values=known_context_values,
             ):
                 failures.append(ValidationFailureCode.SCOPE_MISMATCH)
-            if not self._claim_is_supported(sentence, referenced):
+            if not self._claim_is_supported(support_text, referenced):
                 failures.append(ValidationFailureCode.UNSUPPORTED_CLAIM)
 
         for item in referenced:
             if not any(
                 _facts_share_evidence(_facts(sentence), (item,))
-                and self._claim_is_supported(sentence, (item,))
+                and self._claim_is_supported(
+                    _claim_support_text(sentence, _facts(sentence), observed_at.date()),
+                    (item,),
+                )
                 for sentence in sentences
             ):
                 failures.append(ValidationFailureCode.INVALID_CITATION)
@@ -497,7 +501,7 @@ class AnswerValidator:
             if item is None:
                 failures.append(ValidationFailureCode.UNKNOWN_EVIDENCE_ID)
                 continue
-            citation = _citation(item)
+            citation = citation_from_evidence(item)
             if citation is None:
                 failures.append(ValidationFailureCode.INVALID_CITATION)
                 continue
@@ -526,7 +530,9 @@ class AnswerValidator:
         )
 
 
-def _citation(evidence: RetrievedEvidence) -> EvidenceCitation | None:
+def citation_from_evidence(evidence: RetrievedEvidence) -> EvidenceCitation | None:
+    """Derive a public citation only from well-formed retrieved evidence metadata."""
+
     title = evidence.source_title.strip()
     parsed = urlsplit(evidence.canonical_url)
     if (
@@ -580,6 +586,7 @@ def _scope_matches(evidence: RetrievedEvidence, scope: RetrievalScope) -> bool:
         and applicable.catalog_year == scope.catalog_year
         and applicable.term == scope.term
         and applicable.session == scope.session
+        and applicable.year == scope.year
     )
 
 
@@ -590,7 +597,7 @@ def _answer_context(
     context: dict[ContextField, str | None] = {
         ContextField.CAMPUS: scope.campus,
         ContextField.TERM: scope.term,
-        ContextField.YEAR: None,
+        ContextField.YEAR: scope.year,
         ContextField.SESSION: scope.session,
         ContextField.PROGRAM: scope.program,
         ContextField.STUDENT_LEVEL: scope.student_level,
@@ -763,6 +770,22 @@ def _past_dates_are_labeled(text: str, facts: frozenset[_Fact], today: date) -> 
         if stated_date < today and not _PAST_MARKER_RE.search(text):
             return False
     return True
+
+
+def _claim_support_text(text: str, facts: frozenset[_Fact], today: date) -> str:
+    """Remove a derived past-status label only when the sentence contains a past date."""
+
+    stated_dates: list[date] = []
+    for fact in facts:
+        if fact.kind != "date" or fact.value.startswith("*"):
+            continue
+        try:
+            stated_dates.append(date.fromisoformat(fact.value))
+        except ValueError:
+            continue
+    if stated_dates and all(stated_date < today for stated_date in stated_dates):
+        return _PAST_MARKER_RE.sub(" ", text)
+    return text
 
 
 def _is_safe_limitation(text: str) -> bool:
@@ -985,6 +1008,7 @@ def _evidence_support_units(evidence: RetrievedEvidence) -> tuple[str, ...]:
             applicable.catalog_year,
             applicable.term,
             applicable.session,
+            applicable.year,
         )
         if value is not None
     )
@@ -1006,6 +1030,7 @@ def _evidence_is_well_formed(evidence: RetrievedEvidence) -> bool:
         applicable.catalog_year,
         applicable.term,
         applicable.session,
+        applicable.year,
     )
     return bool(
         isinstance(evidence.evidence_id, UUID)
@@ -1060,6 +1085,7 @@ def _evidence_fingerprint(evidence: RetrievedEvidence) -> tuple[object, ...]:
         applicability.catalog_year,
         applicability.term,
         applicability.session,
+        applicability.year,
         evidence.model_revision,
     )
 
@@ -1080,6 +1106,7 @@ def _word_family(word: str) -> str:
         "applied": "apply",
         "payment": "pay",
         "payments": "pay",
+        "percent": "percentage",
         "registration": "register",
         "registered": "register",
         "registering": "register",

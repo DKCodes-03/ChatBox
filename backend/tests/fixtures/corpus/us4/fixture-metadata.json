@@ -1,0 +1,520 @@
+{
+  "fixture_id": "us4-academic-guidance-v1",
+  "synthetic": true,
+  "notice": "SYNTHETIC TEST FIXTURE — NOT PNW POLICY",
+  "rule_version": "fixture-qualification-v1",
+  "observed_at": "2030-08-01T12:00:00Z",
+  "institution": "Purdue University Northwest",
+  "sources": [
+    {
+      "source_id": "14000000-0000-4000-8000-000000000001",
+      "version_id": "24000000-0000-4000-8000-000000000001",
+      "qualification_id": "44000000-0000-4000-8000-000000000001",
+      "url": "https://catalog.pnw.edu/__test__/us4/synthetic-data-science-ms/",
+      "title": "Synthetic Data Science MS Catalog Entry",
+      "media_type": "html",
+      "fixture_file": "program-catalog.html",
+      "content_sha256": "0b2f955288afacb3f60139e313f3ff7e812bfe4f65d1793053584dd0e8f85f04",
+      "source_status": "eligible",
+      "extraction_status": "complete",
+      "qualification": {
+        "status": "passed",
+        "checked_at": "2030-08-01T11:00:00Z",
+        "valid_until": "2030-08-02T11:00:00Z",
+        "provenance_supported": true,
+        "applicability_supported": true,
+        "fresh": true,
+        "conflict_free": true
+      },
+      "applicability": {
+        "topic": "synthetic_program_catalog",
+        "institution": "Purdue University Northwest",
+        "campus": null,
+        "student_level": "Graduate",
+        "program": "Synthetic Data Science, MS",
+        "catalog_year": "2030-2031",
+        "term": null,
+        "session": null
+      },
+      "academic_profile": {
+        "topic": "program",
+        "program_status": "exists"
+      },
+      "evidence": [
+        {
+          "evidence_id": "34000000-0000-4000-8000-000000000001",
+          "ordinal": 0,
+          "heading_path": ["Synthetic Data Science, MS", "2030-2031 graduate catalog status"],
+          "anchor": "program-status",
+          "topic_key": "synthetic_program_catalog",
+          "scope": {},
+          "text_contains": [
+            "explicitly listed as offered",
+            "2030-2031 graduate catalog",
+            "does not establish admission"
+          ],
+          "structured_content": {
+            "type": "program_catalog_entry",
+            "program": "Synthetic Data Science, MS",
+            "student_level": "Graduate",
+            "catalog_year": "2030-2031",
+            "program_status": "exists",
+            "personal_admission_status_established": false,
+            "current_availability_established": false
+          }
+        }
+      ],
+      "course_relations": [],
+      "office_referrals": []
+    },
+    {
+      "source_id": "14000000-0000-4000-8000-000000000002",
+      "version_id": "24000000-0000-4000-8000-000000000002",
+      "qualification_id": "44000000-0000-4000-8000-000000000002",
+      "url": "https://catalog.pnw.edu/__test__/us4/graduate-admission/",
+      "title": "Synthetic Graduate Admission Guidance",
+      "media_type": "html",
+      "fixture_file": "graduate-admission.html",
+      "content_sha256": "9865ce8b69e2aabca603ec4c0d7e5362fa36a1b0cdcaf89f9e2040e8384e2a42",
+      "source_status": "eligible",
+      "extraction_status": "complete",
+      "qualification": {
+        "status": "passed",
+        "checked_at": "2030-08-01T11:00:00Z",
+        "valid_until": "2030-08-02T11:00:00Z",
+        "provenance_supported": true,
+        "applicability_supported": true,
+        "fresh": true,
+        "conflict_free": true
+      },
+      "applicability": {
+        "topic": "synthetic_graduate_admission",
+        "institution": "Purdue University Northwest",
+        "campus": null,
+        "student_level": "Graduate",
+        "program": null,
+        "catalog_year": "2030-2031",
+        "term": null,
+        "session": null
+      },
+      "academic_profile": {"topic": "graduate_admission"},
+      "evidence": [
+        {
+          "evidence_id": "34000000-0000-4000-8000-000000000002",
+          "ordinal": 0,
+          "heading_path": [
+            "Synthetic graduate admission guidance",
+            "Published requirements for the 2030-2031 graduate catalog"
+          ],
+          "anchor": "published-requirements",
+          "topic_key": "synthetic_graduate_admission",
+          "scope": {},
+          "text_contains": [
+            "Review the requirements",
+            "Prepare the materials",
+            "Submit the fictional graduate application",
+            "do not decide whether any person is admissible"
+          ],
+          "structured_content": {
+            "type": "ordered_procedure",
+            "steps": [
+              "Review the requirements published for the intended graduate program.",
+              "Prepare the materials named by that program.",
+              "Submit the fictional graduate application for program review."
+            ],
+            "personal_admission_decision_allowed": false
+          }
+        }
+      ],
+      "course_relations": [],
+      "office_referrals": []
+    },
+    {
+      "source_id": "14000000-0000-4000-8000-000000000003",
+      "version_id": "24000000-0000-4000-8000-000000000003",
+      "qualification_id": "44000000-0000-4000-8000-000000000003",
+      "url": "https://catalog.pnw.edu/__test__/us4/syn-35000/",
+      "title": "SYN 35000 Synthetic Analytics Prerequisites",
+      "media_type": "html",
+      "fixture_file": "syn-35000-prerequisites.html",
+      "content_sha256": "c3eb3682217b35a92cc8a25c707c86212f67b1af4bbde60a19abac6b3eaebeb8",
+      "source_status": "eligible",
+      "extraction_status": "complete",
+      "qualification": {
+        "status": "passed",
+        "checked_at": "2030-08-01T11:00:00Z",
+        "valid_until": "2030-08-02T11:00:00Z",
+        "provenance_supported": true,
+        "applicability_supported": true,
+        "fresh": true,
+        "conflict_free": true
+      },
+      "applicability": {
+        "topic": "synthetic_course_prerequisites",
+        "institution": "Purdue University Northwest",
+        "campus": "Hammond",
+        "student_level": "Undergraduate",
+        "program": "Synthetic Computing, BS",
+        "catalog_year": "2030-2031",
+        "term": null,
+        "session": null
+      },
+      "academic_profile": null,
+      "evidence": [
+        {
+          "evidence_id": "34000000-0000-4000-8000-000000000003",
+          "ordinal": 0,
+          "heading_path": ["SYN 35000 — Synthetic Analytics", "2030-2031 Hammond catalog requirements"],
+          "anchor": "requirements",
+          "topic_key": "synthetic_course_prerequisites",
+          "scope": {},
+          "text_contains": [
+            "SYN 21000 with a minimum grade of B",
+            "SYN 22000 with a minimum grade of C",
+            "SYN 23000 with a minimum grade of B",
+            "SYN 35001 is a corequisite"
+          ],
+          "structured_content": {
+            "type": "course_requirements",
+            "course_code": "SYN 35000",
+            "prerequisite_expression": {
+              "operator": "or",
+              "groups": [
+                {
+                  "operator": "and",
+                  "requirements": [
+                    {"course_code": "SYN 21000", "minimum_grade": "B"},
+                    {"course_code": "SYN 22000", "minimum_grade": "C"}
+                  ]
+                },
+                {
+                  "operator": "single",
+                  "requirements": [
+                    {"course_code": "SYN 23000", "minimum_grade": "B"}
+                  ]
+                }
+              ]
+            },
+            "corequisites": [
+              {"course_code": "SYN 35001", "concurrent_enrollment_allowed": true}
+            ],
+            "personal_eligibility_established": false,
+            "current_availability_established": false
+          }
+        }
+      ],
+      "course_relations": [
+        {
+          "relation_id": "54000000-0000-4000-8000-000000000001",
+          "evidence_block_id": "34000000-0000-4000-8000-000000000003",
+          "course_code": "SYN 35000",
+          "related_course_code": "SYN 21000",
+          "relation": "prerequisite",
+          "group_expression": {
+            "operator": "or",
+            "group": 1,
+            "group_operator": "and",
+            "minimum_grade": "B"
+          },
+          "catalog_year": "2030-2031",
+          "campus": "Hammond"
+        },
+        {
+          "relation_id": "54000000-0000-4000-8000-000000000002",
+          "evidence_block_id": "34000000-0000-4000-8000-000000000003",
+          "course_code": "SYN 35000",
+          "related_course_code": "SYN 22000",
+          "relation": "prerequisite",
+          "group_expression": {
+            "operator": "or",
+            "group": 1,
+            "group_operator": "and",
+            "minimum_grade": "C"
+          },
+          "catalog_year": "2030-2031",
+          "campus": "Hammond"
+        },
+        {
+          "relation_id": "54000000-0000-4000-8000-000000000003",
+          "evidence_block_id": "34000000-0000-4000-8000-000000000003",
+          "course_code": "SYN 35000",
+          "related_course_code": "SYN 23000",
+          "relation": "prerequisite",
+          "group_expression": {
+            "operator": "or",
+            "group": 2,
+            "group_operator": "single",
+            "minimum_grade": "B"
+          },
+          "catalog_year": "2030-2031",
+          "campus": "Hammond"
+        },
+        {
+          "relation_id": "54000000-0000-4000-8000-000000000004",
+          "evidence_block_id": "34000000-0000-4000-8000-000000000003",
+          "course_code": "SYN 35000",
+          "related_course_code": "SYN 35001",
+          "relation": "corequisite",
+          "group_expression": {
+            "operator": "and",
+            "concurrent_enrollment_allowed": true
+          },
+          "catalog_year": "2030-2031",
+          "campus": "Hammond"
+        }
+      ],
+      "office_referrals": []
+    },
+    {
+      "source_id": "14000000-0000-4000-8000-000000000004",
+      "version_id": "24000000-0000-4000-8000-000000000004",
+      "qualification_id": "44000000-0000-4000-8000-000000000004",
+      "url": "https://www.pnw.edu/__test__/us4/plan-of-study/",
+      "title": "Synthetic Data Science MS Plan of Study",
+      "media_type": "html",
+      "fixture_file": "plan-of-study.html",
+      "content_sha256": "c93372707d67445a5336da2a65d7370f23b14a91b1254a4d385ba28f431364f2",
+      "source_status": "eligible",
+      "extraction_status": "complete",
+      "qualification": {
+        "status": "passed",
+        "checked_at": "2030-08-01T11:00:00Z",
+        "valid_until": "2030-08-02T11:00:00Z",
+        "provenance_supported": true,
+        "applicability_supported": true,
+        "fresh": true,
+        "conflict_free": true
+      },
+      "applicability": {
+        "topic": "synthetic_plan_of_study",
+        "institution": "Purdue University Northwest",
+        "campus": null,
+        "student_level": "Graduate",
+        "program": "Synthetic Data Science, MS",
+        "catalog_year": "2030-2031",
+        "term": null,
+        "session": null
+      },
+      "academic_profile": {"topic": "plan_of_study"},
+      "evidence": [
+        {
+          "evidence_id": "34000000-0000-4000-8000-000000000004",
+          "ordinal": 0,
+          "heading_path": ["Synthetic plan-of-study procedure", "Submission steps"],
+          "anchor": "submission-steps",
+          "topic_key": "synthetic_plan_of_study",
+          "scope": {},
+          "text_contains": [
+            "draft the proposed course list",
+            "assigned academic advisor",
+            "advisor's approval",
+            "fictional Graduate Plan portal"
+          ],
+          "structured_content": {
+            "type": "ordered_procedure",
+            "steps": [
+              "Review the published program requirements and draft the proposed course list.",
+              "Discuss the draft with the assigned academic advisor.",
+              "Obtain the advisor's approval of the proposed plan.",
+              "Submit the approved plan through the fictional Graduate Plan portal."
+            ],
+            "required_approval": "Assigned academic advisor",
+            "personal_plan_validity_established": false
+          }
+        }
+      ],
+      "course_relations": [],
+      "office_referrals": []
+    },
+    {
+      "source_id": "14000000-0000-4000-8000-000000000005",
+      "version_id": "24000000-0000-4000-8000-000000000005",
+      "qualification_id": "44000000-0000-4000-8000-000000000005",
+      "url": "https://www.pnw.edu/__test__/us4/graduation-application/",
+      "title": "Synthetic Data Science MS Graduation Application",
+      "media_type": "html",
+      "fixture_file": "graduation-application.html",
+      "content_sha256": "21ecab852cc664b7ac33bd34fcf00974b91a32a072ebfc019afbb0308387bcc5",
+      "source_status": "eligible",
+      "extraction_status": "complete",
+      "qualification": {
+        "status": "passed",
+        "checked_at": "2030-08-01T11:00:00Z",
+        "valid_until": "2030-08-02T11:00:00Z",
+        "provenance_supported": true,
+        "applicability_supported": true,
+        "fresh": true,
+        "conflict_free": true
+      },
+      "applicability": {
+        "topic": "synthetic_graduation",
+        "institution": "Purdue University Northwest",
+        "campus": null,
+        "student_level": "Graduate",
+        "program": "Synthetic Data Science, MS",
+        "catalog_year": "2030-2031",
+        "term": null,
+        "session": null
+      },
+      "academic_profile": {"topic": "graduation"},
+      "evidence": [
+        {
+          "evidence_id": "34000000-0000-4000-8000-000000000005",
+          "ordinal": 0,
+          "heading_path": ["Synthetic graduation application procedure", "Application steps"],
+          "anchor": "application-steps",
+          "topic_key": "synthetic_graduation",
+          "scope": {},
+          "text_contains": [
+            "Review the published graduation requirements",
+            "academic advisor",
+            "fictional graduation application",
+            "does not establish that degree requirements are complete"
+          ],
+          "structured_content": {
+            "type": "ordered_procedure",
+            "steps": [
+              "Review the published graduation requirements for the applicable catalog.",
+              "Ask the academic advisor to review the planned completion term.",
+              "Submit the fictional graduation application through the student portal.",
+              "Monitor official university messages for requested follow-up."
+            ],
+            "personal_graduation_status_established": false
+          }
+        }
+      ],
+      "course_relations": [],
+      "office_referrals": []
+    },
+    {
+      "source_id": "14000000-0000-4000-8000-000000000006",
+      "version_id": "24000000-0000-4000-8000-000000000006",
+      "qualification_id": "44000000-0000-4000-8000-000000000006",
+      "url": "https://catalog.pnw.edu/__test__/us4/incomplete-program-inventory/",
+      "title": "Incomplete Synthetic Program Inventory",
+      "media_type": "html",
+      "fixture_file": "incomplete-program-inventory.html",
+      "content_sha256": "6d2c6f81b785b6418c688d0ae31da1b6bba8faf8d97418505ab54ceb8d5754b6",
+      "source_status": "quarantined",
+      "extraction_status": "incomplete",
+      "qualification": {
+        "status": "failed",
+        "checked_at": "2030-08-01T11:00:00Z",
+        "valid_until": "2030-08-02T11:00:00Z",
+        "provenance_supported": true,
+        "applicability_supported": false,
+        "fresh": true,
+        "conflict_free": true,
+        "failure_reason": "incomplete_program_inventory"
+      },
+      "applicability": {
+        "topic": "synthetic_program_catalog",
+        "institution": "Purdue University Northwest",
+        "campus": null,
+        "student_level": null,
+        "program": null,
+        "catalog_year": null,
+        "term": null,
+        "session": null
+      },
+      "academic_profile": null,
+      "evidence": [
+        {
+          "evidence_id": "34000000-0000-4000-8000-000000000006",
+          "ordinal": 0,
+          "heading_path": ["Incomplete synthetic program inventory", "Extraction intentionally incomplete"],
+          "anchor": "incomplete-inventory",
+          "topic_key": "synthetic_program_catalog",
+          "scope": {},
+          "text_contains": [
+            "INCOMPLETE-CATALOG-SENTINEL",
+            "remaining program entries",
+            "cannot establish that an unlisted program does not exist"
+          ],
+          "structured_content": {
+            "type": "incomplete_program_inventory",
+            "complete": false,
+            "may_support_negative_program_claim": false
+          }
+        }
+      ],
+      "course_relations": [],
+      "office_referrals": []
+    },
+    {
+      "source_id": "14000000-0000-4000-8000-000000000007",
+      "version_id": "24000000-0000-4000-8000-000000000007",
+      "qualification_id": "44000000-0000-4000-8000-000000000007",
+      "url": "https://catalog.pnw.edu/__test__/us4/syn-46000-typical-offering/",
+      "title": "SYN 46000 Typical Offering",
+      "media_type": "html",
+      "fixture_file": "typical-offering.html",
+      "content_sha256": "0219837e3ad9c738ccd62f2c663bea7bc5ac01da5f21bcdb120fe89ad601d52c",
+      "source_status": "eligible",
+      "extraction_status": "complete",
+      "qualification": {
+        "status": "passed",
+        "checked_at": "2030-08-01T11:00:00Z",
+        "valid_until": "2030-08-02T11:00:00Z",
+        "provenance_supported": true,
+        "applicability_supported": true,
+        "fresh": true,
+        "conflict_free": true
+      },
+      "applicability": {
+        "topic": "synthetic_current_availability",
+        "institution": "Purdue University Northwest",
+        "campus": "Hammond",
+        "student_level": "Undergraduate",
+        "program": "Synthetic Computing, BS",
+        "catalog_year": "2030-2031",
+        "term": null,
+        "session": null
+      },
+      "academic_profile": {
+        "topic": "current_availability",
+        "availability_basis": "typical_offering"
+      },
+      "evidence": [
+        {
+          "evidence_id": "34000000-0000-4000-8000-000000000007",
+          "ordinal": 0,
+          "heading_path": ["SYN 46000 — Synthetic Visualization", "Typical offering pattern"],
+          "anchor": "typical-offering",
+          "topic_key": "synthetic_current_availability",
+          "scope": {},
+          "text_contains": [
+            "typically offered in the Fall",
+            "not a current schedule",
+            "does not confirm",
+            "Check the current class schedule"
+          ],
+          "structured_content": {
+            "type": "typical_offering",
+            "course_code": "SYN 46000",
+            "typical_term": "Fall",
+            "availability_basis": "typical_offering",
+            "current_availability_established": false
+          }
+        }
+      ],
+      "course_relations": [],
+      "office_referrals": [
+        {
+          "referral_id": "64000000-0000-4000-8000-000000000001",
+          "office_name": "Synthetic Registrar Schedule Service",
+          "responsibilities": "Confirm current fictional class availability",
+          "contact_label": "Open the synthetic current class schedule",
+          "contact_url": "https://www.pnw.edu/__test__/us4/current-class-schedule/",
+          "evidence_block_id": "34000000-0000-4000-8000-000000000007",
+          "scope": {
+            "topic": "synthetic_current_availability",
+            "institution": "Purdue University Northwest",
+            "campus": "Hammond"
+          },
+          "expected_eligible": true
+        }
+      ]
+    }
+  ]
+}

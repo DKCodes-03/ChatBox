@@ -28,8 +28,8 @@
 #   docker compose --env-file deploy/.env -f deploy/compose.yaml config
 #   docker compose --env-file deploy/.env -f deploy/compose.yaml up --build
 #
-# Ordinary `up` starts db, migrate, api, and web. Ingestion and local inference use profiles
-# because they are optional operational workloads.
+# Ordinary `up` starts db, migrate, role provisioning, api, and web. Ingestion and local
+# inference use profiles because they are optional operational workloads.
 
 name: pnw-student-chatbot
 
@@ -67,6 +67,35 @@ x-backend-service: &backend-service
   networks:
     - backend
 
+# The explicit test profile uses a smaller image that omits Sentence Transformers and its PyTorch
+# dependency because the synthetic embedder never imports them. All serving code and database
+# boundaries remain the same as the production API image.
+x-test-backend-service: &test-backend-service
+  image: pnw-student-chatbot-test:local
+  build:
+    context: ..
+    dockerfile: deploy/Dockerfile.test
+  env_file:
+    - path: ./.env.example
+      required: true
+    - path: ./.env
+      required: false
+  user: "65532:65532"
+  read_only: true
+  init: true
+  tmpfs:
+    - /tmp:size=64m,mode=1777,noexec,nosuid,nodev
+  cap_drop:
+    - ALL
+  security_opt:
+    - no-new-privileges:true
+  ulimits:
+    core:
+      soft: 0
+      hard: 0
+  networks:
+    - backend
+
 services:
   # PostgreSQL stores the approved public corpus, pgvector embeddings, governance events, and
   # aggregate metrics. It must never store student conversation text or query embeddings.
@@ -77,7 +106,7 @@ services:
       POSTGRES_USER: ${POSTGRES_MIGRATION_USER:-pnw_chatbot_migrator}
       # The official image reads the bootstrap password from this mounted file.
       # PostgreSQL bootstraps the dedicated migration role with the same password file used by
-      # the migration job. Later migrations create the restricted runtime/governance roles.
+      # the migration job. The one-shot role provisioner creates restricted application roles.
       POSTGRES_PASSWORD_FILE: /run/secrets/postgres_migration_password
     secrets:
       - postgres_migration_password
@@ -112,6 +141,49 @@ services:
     depends_on:
       db:
         condition: service_healthy
+    restart: "no"
+
+  # This one-shot service runs after migrations because grants can only target tables that exist.
+  # It is the only container that temporarily receives all three database secrets. It creates or
+  # updates the two restricted login roles, removes inherited public privileges, and reapplies a
+  # fixed grant list. No role password is stored in Compose, an image layer, or PostgreSQL tables.
+  provision-db-roles:
+    image: pgvector/pgvector:0.8.6-pg17-bookworm
+    command: ["/bin/sh", "/usr/local/bin/provision-database-roles.sh"]
+    # UID/GID 999 is the unprivileged postgres account in this pinned Debian image.
+    user: "999:999"
+    environment:
+      POSTGRES_HOST: ${POSTGRES_HOST:-db}
+      POSTGRES_PORT: ${POSTGRES_PORT:-5432}
+      POSTGRES_DB: ${POSTGRES_DB:-pnw_chatbot}
+      POSTGRES_MIGRATION_USER: ${POSTGRES_MIGRATION_USER:-pnw_chatbot_migrator}
+      POSTGRES_RUNTIME_USER: ${POSTGRES_RUNTIME_USER:-pnw_chatbot_api}
+      POSTGRES_GOVERNANCE_USER: ${POSTGRES_GOVERNANCE_USER:-pnw_chatbot_governance}
+    secrets:
+      - postgres_migration_password
+      - postgres_runtime_password
+      - postgres_governance_password
+    volumes:
+      - type: bind
+        source: ./provision-database-roles.sh
+        target: /usr/local/bin/provision-database-roles.sh
+        read_only: true
+    read_only: true
+    tmpfs:
+      - /tmp:size=16m,mode=1777,noexec,nosuid,nodev
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    ulimits:
+      core:
+        soft: 0
+        hard: 0
+    networks:
+      - backend
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
     restart: "no"
 
   # FastAPI coordinates sessions, retrieval, generation, citations, and answer validation.
@@ -155,6 +227,8 @@ services:
       db:
         condition: service_healthy
       migrate:
+        condition: service_completed_successfully
+      provision-db-roles:
         condition: service_completed_successfully
     healthcheck:
       # Python is already in the API image, avoiding a separate curl dependency.
@@ -210,7 +284,10 @@ services:
     restart: unless-stopped
 
   # Ingestion discovers bounded PNW pages/PDFs, extracts structured evidence, qualifies sources,
-  # creates embeddings, and writes public-corpus data. It runs only when requested:
+  # creates embeddings, and writes public-corpus data. Its default command refreshes every source
+  # whose latest qualification is at least 24 hours old, so a host scheduler can run this service
+  # daily. Operators can replace the command to import a mounted manifest or fetch one source.
+  # It runs only when requested:
   #   docker compose --env-file deploy/.env -f deploy/compose.yaml --profile operations run --rm ingest
   ingest:
     <<: *backend-service
@@ -225,6 +302,8 @@ services:
         condition: service_healthy
       migrate:
         condition: service_completed_successfully
+      provision-db-roles:
+        condition: service_completed_successfully
     volumes:
       # Downloaded public artifacts survive a one-shot ingestion container.
       - source_data:/data/sources
@@ -236,6 +315,418 @@ services:
       # Ingestion needs outbound HTTPS to approved PNW hosts and backend access to PostgreSQL.
       - edge
       - backend
+    restart: "no"
+
+  # This assignment/demo job prepares exactly three checked-in, public PNW webpages. Crawl depth
+  # and URL budget are one-root-only here so the database contents remain reproducible and the
+  # job does not expand into unrelated PNW navigation links. It still uses the production parser,
+  # semantic chunker, local MiniLM model, pgvector indexer, and automated qualification rules.
+  # Run it after downloading the embedding model described in README.md:
+  #   docker compose --env-file deploy/.env -f deploy/compose.yaml --profile operations run --rm ingest-pnw-demo
+  ingest-pnw-demo:
+    <<: *backend-service
+    command: ["python", "-m", "app.demo_ingest", "--manifest", "/work/pnw-demo-sources.json"]
+    profiles: ["operations"]
+    environment:
+      POSTGRES_PASSWORD_FILE: /run/secrets/postgres_governance_password
+      SOURCE_MAX_CRAWL_DEPTH: "0"
+      SOURCE_MAX_URLS_PER_RUN: "1"
+    secrets:
+      - postgres_governance_password
+    depends_on:
+      db:
+        condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
+      provision-db-roles:
+        condition: service_completed_successfully
+    volumes:
+      - type: bind
+        source: ../corpus/pnw-demo-sources.json
+        target: /work/pnw-demo-sources.json
+        read_only: true
+      - type: bind
+        source: ${EMBEDDING_MODEL_HOST_DIR:-./models/embeddings}
+        target: /models/embeddings
+        read_only: true
+    networks:
+      - edge
+      - backend
+    restart: "no"
+
+  # The test seed is an explicit one-shot job. It parses the checked-in HTML and PDF fixtures,
+  # writes them through the real PostgreSQL schema, and gives them fresh 24-hour qualifications.
+  # Run it with:
+  #   docker compose --env-file deploy/.env -f deploy/compose.yaml --profile test run --rm test-seed
+  # The service uses the migration owner because deterministic setup must be idempotent; the API
+  # that reads the result still uses only the restricted runtime role.
+  test-seed:
+    <<: *test-backend-service
+    profiles: ["test"]
+    command: ["python", "-m", "app.testing.seed_us1", "--fixture-dir", "/fixtures/us1"]
+    environment:
+      APP_ENV: test
+      POSTGRES_PASSWORD_FILE: /run/secrets/postgres_migration_password
+    secrets:
+      - postgres_migration_password
+    volumes:
+      - type: bind
+        source: ../backend/tests/fixtures/corpus/us1
+        target: /fixtures/us1
+        read_only: true
+    depends_on:
+      db:
+        condition: service_healthy
+      migrate-test:
+        condition: service_completed_successfully
+      provision-db-roles-test:
+        condition: service_completed_successfully
+    restart: "no"
+
+  # US3 uses a separate idempotent seed job so context tests can load contrasting campus, term,
+  # year, and session rows without changing the US1 full-stack fixture contract.
+  test-seed-us3:
+    <<: *test-backend-service
+    profiles: ["test"]
+    command: ["python", "-m", "app.testing.seed_us3", "--fixture-dir", "/fixtures/us3"]
+    environment:
+      APP_ENV: test
+      POSTGRES_PASSWORD_FILE: /run/secrets/postgres_migration_password
+    secrets:
+      - postgres_migration_password
+    volumes:
+      - type: bind
+        source: ../backend/tests/fixtures/corpus/us3
+        target: /fixtures/us3
+        read_only: true
+    depends_on:
+      db:
+        condition: service_healthy
+      migrate-test:
+        condition: service_completed_successfully
+      provision-db-roles-test:
+        condition: service_completed_successfully
+    restart: "no"
+
+  # US4 loads the synthetic catalog and academic-procedure sources used by the browser tests.
+  # The job records the same qualification, applicability, relationship, and referral metadata
+  # that the runtime API reads; it does not bypass retrieval or answer validation.
+  test-seed-us4:
+    <<: *test-backend-service
+    profiles: ["test"]
+    command: ["python", "-m", "app.testing.seed_us4", "--fixture-dir", "/fixtures/us4"]
+    environment:
+      APP_ENV: test
+      POSTGRES_PASSWORD_FILE: /run/secrets/postgres_migration_password
+    secrets:
+      - postgres_migration_password
+    volumes:
+      - type: bind
+        source: ../backend/tests/fixtures/corpus/us4
+        target: /fixtures/us4
+        read_only: true
+    depends_on:
+      db:
+        condition: service_healthy
+      migrate-test:
+        condition: service_completed_successfully
+      provision-db-roles-test:
+        condition: service_completed_successfully
+    restart: "no"
+
+  # Run T041 against the real migrated PostgreSQL/pgvector schema and restricted runtime role.
+  # The ordinary host test suite leaves the database-only cases skipped; this service enables and
+  # executes them after the qualified US3 corpus has been seeded.
+  test-context-us3:
+    <<: *test-backend-service
+    profiles: ["test"]
+    command:
+      ["pytest", "-p", "no:cacheprovider", "-q", "tests/integration/test_context_retrieval.py"]
+    environment:
+      APP_ENV: test
+      SYNTHETIC_TEST_MODE: "true"
+      DATABASE_INTEGRATION_TESTS: "true"
+    secrets:
+      - postgres_runtime_password
+    depends_on:
+      test-seed-us3:
+        condition: service_completed_successfully
+    restart: "no"
+
+  # Run the US4 integration suite with the same restricted runtime role used by the deployed API.
+  # These checks prove that production retrieval invokes the academic scope rules and reads the
+  # normalized prerequisite relations instead of relying only on fixture metadata or LLM prose.
+  test-academic-us4:
+    <<: *test-backend-service
+    profiles: ["test"]
+    command:
+      ["pytest", "-p", "no:cacheprovider", "-q", "tests/integration/test_academic_guidance.py"]
+    environment:
+      APP_ENV: test
+      SYNTHETIC_TEST_MODE: "true"
+      DATABASE_INTEGRATION_TESTS: "true"
+    secrets:
+      - postgres_runtime_password
+    depends_on:
+      test-seed-us4:
+        condition: service_completed_successfully
+    restart: "no"
+
+  # Run T060 through the real migrated PostgreSQL/pgvector schema with the governance role that
+  # owns ingestion writes. The test transaction rolls back at teardown, so repeated runs do not
+  # leave synthetic sources in the shared test database.
+  test-vector-pipeline:
+    <<: *test-backend-service
+    profiles: ["test"]
+    command:
+      ["pytest", "-p", "no:cacheprovider", "-q", "tests/integration/test_vector_pipeline.py"]
+    environment:
+      APP_ENV: test
+      DATABASE_INTEGRATION_TESTS: "true"
+      POSTGRES_GOVERNANCE_PASSWORD_FILE: /run/secrets/postgres_governance_password
+    secrets:
+      - postgres_governance_password
+    depends_on:
+      provision-db-roles-test:
+        condition: service_completed_successfully
+    restart: "no"
+
+  # Drive the real source CLI and SourceIngestionPipeline through the migrated database. The suite
+  # uses deterministic local vectors while retaining the production 384-dimensional pgvector
+  # schema, governance transactions, extraction, qualification, and lifecycle code paths.
+  test-ingestion-pipeline:
+    <<: *test-backend-service
+    profiles: ["test"]
+    command:
+      ["pytest", "-p", "no:cacheprovider", "-q", "tests/integration/test_ingestion_pipeline.py"]
+    environment:
+      APP_ENV: test
+      DATABASE_INTEGRATION_TESTS: "true"
+      POSTGRES_MIGRATION_PASSWORD_FILE: /run/secrets/postgres_migration_password
+      POSTGRES_GOVERNANCE_PASSWORD_FILE: /run/secrets/postgres_governance_password
+    secrets:
+      - postgres_migration_password
+      - postgres_governance_password
+    depends_on:
+      provision-db-roles-test:
+        condition: service_completed_successfully
+    restart: "no"
+
+  # Run T061 with all three database roles: migration seeds/removes isolated synthetic rows,
+  # runtime executes production retrieval/final authorization, and governance commits lifecycle
+  # changes such as conflict supersession and withdrawal.
+  test-retrieval-authorization:
+    <<: *test-backend-service
+    profiles: ["test"]
+    command:
+      [
+        "pytest",
+        "-p",
+        "no:cacheprovider",
+        "-q",
+        "tests/integration/test_retrieval_authorization.py",
+      ]
+    environment:
+      APP_ENV: test
+      DATABASE_INTEGRATION_TESTS: "true"
+      POSTGRES_RUNTIME_PASSWORD_FILE: /run/secrets/postgres_runtime_password
+      POSTGRES_MIGRATION_PASSWORD_FILE: /run/secrets/postgres_migration_password
+      POSTGRES_GOVERNANCE_PASSWORD_FILE: /run/secrets/postgres_governance_password
+    secrets:
+      - postgres_runtime_password
+      - postgres_migration_password
+      - postgres_governance_password
+    depends_on:
+      provision-db-roles-test:
+        condition: service_completed_successfully
+    restart: "no"
+
+  # The test profile uses the lightweight Python image for the same Alembic migrations, avoiding
+  # the production image's optional Sentence Transformers dependency.
+  migrate-test:
+    <<: *test-backend-service
+    profiles: ["test"]
+    command: ["alembic", "upgrade", "head"]
+    environment:
+      APP_ENV: test
+      POSTGRES_PASSWORD_FILE: /run/secrets/postgres_migration_password
+    secrets:
+      - postgres_migration_password
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: "no"
+
+  # Reapply the same restricted runtime grants after the test migration has created the tables.
+  provision-db-roles-test:
+    image: pgvector/pgvector:0.8.6-pg17-bookworm
+    profiles: ["test"]
+    command: ["/bin/sh", "/usr/local/bin/provision-database-roles.sh"]
+    user: "999:999"
+    environment:
+      POSTGRES_HOST: ${POSTGRES_HOST:-db}
+      POSTGRES_PORT: ${POSTGRES_PORT:-5432}
+      POSTGRES_DB: ${POSTGRES_DB:-pnw_chatbot}
+      POSTGRES_MIGRATION_USER: ${POSTGRES_MIGRATION_USER:-pnw_chatbot_migrator}
+      POSTGRES_RUNTIME_USER: ${POSTGRES_RUNTIME_USER:-pnw_chatbot_api}
+      POSTGRES_GOVERNANCE_USER: ${POSTGRES_GOVERNANCE_USER:-pnw_chatbot_governance}
+    secrets:
+      - postgres_migration_password
+      - postgres_runtime_password
+      - postgres_governance_password
+    volumes:
+      - type: bind
+        source: ./provision-database-roles.sh
+        target: /usr/local/bin/provision-database-roles.sh
+        read_only: true
+    read_only: true
+    tmpfs:
+      - /tmp:size=16m,mode=1777,noexec,nosuid,nodev
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    ulimits:
+      core:
+        soft: 0
+        hard: 0
+    networks:
+      - backend
+    depends_on:
+      migrate-test:
+        condition: service_completed_successfully
+    restart: "no"
+
+  # This deterministic service implements only the local adapter's health, chat-completion, and
+  # slot-erasure contracts. It never calls Gemini and never persists a prompt or response.
+  inference-fake:
+    <<: *test-backend-service
+    profiles: ["test"]
+    command:
+      - uvicorn
+      - app.testing.inference_fake:app
+      - --host
+      - 0.0.0.0
+      - --port
+      - "8080"
+      - --no-access-log
+      - --no-server-header
+    networks:
+      - backend
+    healthcheck:
+      test:
+        - CMD
+        - python
+        - -c
+        - >-
+          import urllib.request;
+          urllib.request.urlopen('http://127.0.0.1:8080/health', timeout=3)
+      interval: 5s
+      timeout: 3s
+      retries: 10
+      start_period: 5s
+    restart: "no"
+
+  # The synthetic API uses the same application factory and production RequestMessageProcessor.
+  # APP_ENV=test permits the deterministic transient embedder, while LLM_PROVIDER=local routes the
+  # bounded prompt through inference-fake and still requires confirmed slot cleanup.
+  api-test:
+    <<: *test-backend-service
+    profiles: ["test"]
+    command:
+      - uvicorn
+      - app.main:app
+      - --host
+      - 0.0.0.0
+      - --port
+      - "8000"
+      - --workers
+      - "1"
+      - --no-access-log
+      - --no-server-header
+    environment:
+      APP_ENV: test
+      PUBLIC_ORIGIN: http://localhost:${TEST_PUBLIC_HTTP_PORT:-8180}
+      POSTGRES_PASSWORD_FILE: /run/secrets/postgres_runtime_password
+      LLM_PROVIDER: local
+      LOCAL_INFERENCE_ENABLED: "true"
+      LOCAL_INFERENCE_BASE_URL: http://inference-fake:8080
+      SYNTHETIC_TEST_MODE: "true"
+      CHAT_ACCESS_LOG_ENABLED: "false"
+      REQUEST_BODY_LOGGING_ENABLED: "false"
+      SQL_ECHO: "false"
+      TRACE_CONTENT_ENABLED: "false"
+    secrets:
+      - postgres_runtime_password
+    networks:
+      edge:
+        aliases:
+          # proxy.conf intentionally uses the production upstream name `api`.
+          - api
+      backend:
+    depends_on:
+      db:
+        condition: service_healthy
+      migrate-test:
+        condition: service_completed_successfully
+      provision-db-roles-test:
+        condition: service_completed_successfully
+      test-seed:
+        condition: service_completed_successfully
+      test-seed-us3:
+        condition: service_completed_successfully
+      test-seed-us4:
+        condition: service_completed_successfully
+      inference-fake:
+        condition: service_healthy
+    healthcheck:
+      test:
+        - CMD
+        - python
+        - -c
+        - >-
+          import urllib.request;
+          urllib.request.urlopen('http://127.0.0.1:8000/api/v1/health/ready', timeout=3)
+      interval: 5s
+      timeout: 3s
+      retries: 12
+      start_period: 10s
+    restart: "no"
+
+  # This proxy is separate from the ordinary web service so the test deployment cannot replace a
+  # developer's normal port 8080 instance. Open http://localhost:8180 after the profile is ready.
+  web-test:
+    image: pnw-student-chatbot-web:local
+    build:
+      context: ..
+      dockerfile: deploy/Dockerfile.web
+    profiles: ["test"]
+    user: "101:101"
+    read_only: true
+    init: true
+    tmpfs:
+      - /tmp:size=32m,mode=1777,noexec,nosuid,nodev
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    ulimits:
+      core:
+        soft: 0
+        hard: 0
+    ports:
+      - "${TEST_PUBLIC_HTTP_PORT:-8180}:8080"
+    networks:
+      - edge
+    depends_on:
+      api-test:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--spider", "http://127.0.0.1:8080/healthz"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+      start_period: 5s
     restart: "no"
 
   # llama.cpp is an optional local alternative to Gemini. Put a verified GGUF file in

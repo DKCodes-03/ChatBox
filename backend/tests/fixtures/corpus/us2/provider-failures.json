@@ -1,0 +1,34 @@
+{
+  "fixture_id": "us2-provider-failures-v1",
+  "synthetic": true,
+  "cases": [
+    {
+      "id": "gemini-quota",
+      "failure_kind": "quota",
+      "http_status": 429,
+      "expected_reason_code": "processing_unavailable",
+      "expected_retryable": true,
+      "must_not_include_provider_detail": true,
+      "allow_automatic_resubmission": false
+    },
+    {
+      "id": "gemini-timeout",
+      "failure_kind": "timeout",
+      "expected_reason_code": "processing_unavailable",
+      "expected_retryable": true,
+      "must_not_include_provider_detail": true,
+      "allow_automatic_resubmission": false
+    },
+    {
+      "id": "gemini-malformed-response",
+      "failure_kind": "invalid_payload",
+      "response_shape": {
+        "unexpected": "SYNTHETIC-MALFORMED-SENTINEL"
+      },
+      "expected_reason_code": "processing_unavailable",
+      "expected_retryable": true,
+      "must_not_include_provider_detail": true,
+      "allow_automatic_resubmission": false
+    }
+  ]
+}

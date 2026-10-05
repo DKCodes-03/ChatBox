@@ -1,0 +1,23 @@
+{
+  "sources": [
+    {
+      "url": "https://www.pnw.edu/__test__/blue-lantern/procedure/",
+      "title": "Synthetic Blue Lantern Procedure Overview",
+      "topics": ["synthetic_procedure"],
+      "allowed_child_hosts": ["www.pnw.edu"]
+    },
+    {
+      "url": "https://www.pnw.edu/__test__/blue-lantern/eligibility-and-steps/",
+      "title": "Synthetic Blue Lantern Eligibility and First Steps",
+      "topics": ["synthetic_procedure"],
+      "allowed_child_hosts": ["www.pnw.edu"]
+    },
+    {
+      "url": "https://www.pnw.edu/__test__/blue-lantern/replacement-form.pdf",
+      "title": "Synthetic Blue Lantern Replacement Form Instructions",
+      "topics": ["synthetic_procedure"],
+      "allowed_child_hosts": ["www.pnw.edu"]
+    }
+  ]
+}
+

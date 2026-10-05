@@ -1,0 +1,310 @@
+{
+  "fixture_id": "us2-adverse-sources-v1",
+  "synthetic": true,
+  "notice": "SYNTHETIC TEST FIXTURE — NOT PNW POLICY",
+  "rule_version": "fixture-qualification-v1",
+  "observed_at": "2030-01-16T13:00:00Z",
+  "sources": [
+    {
+      "source_id": "11000000-0000-4000-8000-000000000001",
+      "version_id": "21000000-0000-4000-8000-000000000001",
+      "qualification_id": "41000000-0000-4000-8000-000000000001",
+      "url": "https://www.pnw.edu/__test__/us2/stale-amber-deadline/",
+      "title": "Synthetic Stale Amber Kite Deadline",
+      "media_type": "html",
+      "fixture_file": "stale-amber-deadline.html",
+      "content_sha256": "d9517bbac935e7182705afe3ed83a152e162d18be90a5c93955f43b5d7a18f8c",
+      "source_status": "stale",
+      "extraction_status": "complete",
+      "qualification": {
+        "status": "passed",
+        "checked_at": "2030-01-14T12:00:00Z",
+        "valid_until": "2030-01-15T12:00:00Z",
+        "provenance_supported": true,
+        "applicability_supported": true,
+        "fresh": false
+      },
+      "applicability": {
+        "topic": "synthetic_stale_deadline",
+        "institution": "Purdue University Northwest",
+        "campus": null,
+        "student_level": null,
+        "program": null,
+        "catalog_year": null,
+        "term": null,
+        "session": null
+      },
+      "evidence": [
+        {
+          "evidence_id": "31000000-0000-4000-8000-000000000001",
+          "ordinal": 0,
+          "heading_path": ["Synthetic Amber Kite Request Window", "Old test deadline"],
+          "anchor": "old-deadline",
+          "topic_key": "synthetic_stale_deadline",
+          "text_contains": ["4:00 p.m.", "January 12, 2030"]
+        }
+      ],
+      "office_referrals": []
+    },
+    {
+      "source_id": "11000000-0000-4000-8000-000000000002",
+      "version_id": "21000000-0000-4000-8000-000000000002",
+      "qualification_id": "41000000-0000-4000-8000-000000000002",
+      "url": "https://www.pnw.edu/__test__/us2/quarantined-contact/",
+      "title": "Synthetic Quarantined Contact Claim",
+      "media_type": "html",
+      "fixture_file": "quarantined-contact.html",
+      "content_sha256": "d5b12e413150d2666490509c26e171b59c149e35e47aa5546c3f122f082aafc5",
+      "source_status": "quarantined",
+      "extraction_status": "complete",
+      "qualification": {
+        "status": "failed",
+        "checked_at": "2030-01-16T12:00:00Z",
+        "valid_until": "2030-01-17T12:00:00Z",
+        "provenance_supported": false,
+        "applicability_supported": true,
+        "fresh": true,
+        "failure_reason": "provenance_failed"
+      },
+      "applicability": {
+        "topic": "synthetic_quarantined_guidance",
+        "institution": "Purdue University Northwest",
+        "campus": null,
+        "student_level": null,
+        "program": null,
+        "catalog_year": null,
+        "term": null,
+        "session": null
+      },
+      "evidence": [
+        {
+          "evidence_id": "31000000-0000-4000-8000-000000000002",
+          "ordinal": 0,
+          "heading_path": ["Unverified Amber Kite Contact", "Contact claim that must not be released"],
+          "anchor": "unverified-contact",
+          "topic_key": "synthetic_quarantined_guidance",
+          "text_contains": ["Imaginary Kite Desk", "unverified-desk@example.invalid"]
+        }
+      ],
+      "office_referrals": [
+        {
+          "referral_id": "61000000-0000-4000-8000-000000000001",
+          "office_name": "Imaginary Kite Desk",
+          "responsibilities": "Unsupported Amber Kite requests",
+          "contact_label": "Email the unverified desk",
+          "contact_url": "mailto:unverified-desk@example.invalid",
+          "evidence_block_id": "31000000-0000-4000-8000-000000000002",
+          "scope": {
+            "topic": "synthetic_quarantined_guidance",
+            "institution": "Purdue University Northwest"
+          },
+          "expected_eligible": false
+        }
+      ]
+    },
+    {
+      "source_id": "11000000-0000-4000-8000-000000000003",
+      "version_id": "21000000-0000-4000-8000-000000000003",
+      "qualification_id": "41000000-0000-4000-8000-000000000003",
+      "url": "https://www.pnw.edu/__test__/us2/unavailable-source/",
+      "title": "Synthetic Unavailable Source",
+      "media_type": "html",
+      "fixture_file": "unavailable-source.html",
+      "content_sha256": "a6bebab259553a95356cc4b5c88ce5a224bab6a3465ed6fa9c781f459fb70910",
+      "source_status": "eligible",
+      "extraction_status": "failed",
+      "qualification": {
+        "status": "failed",
+        "checked_at": "2030-01-16T12:00:00Z",
+        "valid_until": "2030-01-17T12:00:00Z",
+        "provenance_supported": true,
+        "applicability_supported": false,
+        "fresh": true,
+        "failure_reason": "extraction_failed"
+      },
+      "ingestion": {
+        "status": "failed",
+        "reason_code": "fetch_timeout"
+      },
+      "applicability": {
+        "topic": "synthetic_source_outage",
+        "institution": "Purdue University Northwest",
+        "campus": null,
+        "student_level": null,
+        "program": null,
+        "catalog_year": null,
+        "term": null,
+        "session": null
+      },
+      "evidence": [
+        {
+          "evidence_id": "31000000-0000-4000-8000-000000000003",
+          "ordinal": 0,
+          "heading_path": ["Synthetic Source Outage Placeholder", "Incomplete extraction marker"],
+          "anchor": "incomplete",
+          "topic_key": "synthetic_source_outage",
+          "text_contains": ["FETCH-TIMEOUT-SENTINEL", "No procedure"]
+        }
+      ],
+      "office_referrals": []
+    },
+    {
+      "source_id": "11000000-0000-4000-8000-000000000004",
+      "version_id": "21000000-0000-4000-8000-000000000004",
+      "qualification_id": "41000000-0000-4000-8000-000000000004",
+      "url": "https://www.pnw.edu/__test__/us2/coral-clock-eight/",
+      "title": "Synthetic Coral Clock Schedule A",
+      "media_type": "html",
+      "fixture_file": "conflict-eight.html",
+      "content_sha256": "a02ea1873f7220023bd17c7fd8ac9d09e0bf8a45d51b7afcef335a815d6c9093",
+      "source_status": "eligible",
+      "extraction_status": "complete",
+      "qualification": {
+        "status": "passed",
+        "checked_at": "2030-01-16T12:00:00Z",
+        "valid_until": "2030-01-17T12:00:00Z",
+        "provenance_supported": true,
+        "applicability_supported": true,
+        "fresh": true
+      },
+      "applicability": {
+        "topic": "synthetic_conflict",
+        "institution": "Purdue University Northwest",
+        "campus": null,
+        "student_level": null,
+        "program": null,
+        "catalog_year": null,
+        "term": null,
+        "session": null
+      },
+      "evidence": [
+        {
+          "evidence_id": "31000000-0000-4000-8000-000000000004",
+          "ordinal": 0,
+          "heading_path": ["Synthetic Coral Clock Service Schedule A", "Opening time"],
+          "anchor": "opening-time",
+          "topic_key": "synthetic_conflict",
+          "text_contains": ["opens at 8:00 a.m.", "synthetic test day"]
+        }
+      ],
+      "office_referrals": []
+    },
+    {
+      "source_id": "11000000-0000-4000-8000-000000000005",
+      "version_id": "21000000-0000-4000-8000-000000000005",
+      "qualification_id": "41000000-0000-4000-8000-000000000005",
+      "url": "https://www.pnw.edu/__test__/us2/coral-clock-ten/",
+      "title": "Synthetic Coral Clock Schedule B",
+      "media_type": "html",
+      "fixture_file": "conflict-ten.html",
+      "content_sha256": "0758be5794c415cb62d7053a4caee095d85adb0cb268afaee541419da8d0bb44",
+      "source_status": "eligible",
+      "extraction_status": "complete",
+      "qualification": {
+        "status": "passed",
+        "checked_at": "2030-01-16T12:00:00Z",
+        "valid_until": "2030-01-17T12:00:00Z",
+        "provenance_supported": true,
+        "applicability_supported": true,
+        "fresh": true
+      },
+      "applicability": {
+        "topic": "synthetic_conflict",
+        "institution": "Purdue University Northwest",
+        "campus": null,
+        "student_level": null,
+        "program": null,
+        "catalog_year": null,
+        "term": null,
+        "session": null
+      },
+      "evidence": [
+        {
+          "evidence_id": "31000000-0000-4000-8000-000000000005",
+          "ordinal": 0,
+          "heading_path": ["Synthetic Coral Clock Service Schedule B", "Opening time"],
+          "anchor": "opening-time",
+          "topic_key": "synthetic_conflict",
+          "text_contains": ["opens at 10:00 a.m.", "synthetic test day"]
+        }
+      ],
+      "office_referrals": []
+    },
+    {
+      "source_id": "11000000-0000-4000-8000-000000000006",
+      "version_id": "21000000-0000-4000-8000-000000000006",
+      "qualification_id": "41000000-0000-4000-8000-000000000006",
+      "url": "https://www.pnw.edu/__test__/us2/personal-registration-help/",
+      "title": "Synthetic Registration Error Help",
+      "media_type": "html",
+      "fixture_file": "personal-registration-help.html",
+      "content_sha256": "769f4dd47e981090707ab438b10f793bb8ee1f3b4ec90308db878ef955af7935",
+      "source_status": "eligible",
+      "extraction_status": "complete",
+      "qualification": {
+        "status": "passed",
+        "checked_at": "2030-01-16T12:00:00Z",
+        "valid_until": "2030-01-17T12:00:00Z",
+        "provenance_supported": true,
+        "applicability_supported": true,
+        "fresh": true
+      },
+      "applicability": {
+        "topic": "synthetic_personal_registration",
+        "institution": "Purdue University Northwest",
+        "campus": null,
+        "student_level": null,
+        "program": null,
+        "catalog_year": null,
+        "term": null,
+        "session": null
+      },
+      "evidence": [
+        {
+          "evidence_id": "31000000-0000-4000-8000-000000000006",
+          "ordinal": 0,
+          "heading_path": ["Synthetic Registration Error ZX-17", "General boundary and supported referral"],
+          "anchor": "boundary-and-contact",
+          "topic_key": "synthetic_personal_registration",
+          "text_contains": [
+            "cannot inspect a student's record",
+            "Synthetic Registration Support Office",
+            "registration-fixture@example.invalid"
+          ]
+        }
+      ],
+      "office_referrals": [
+        {
+          "referral_id": "61000000-0000-4000-8000-000000000002",
+          "office_name": "Synthetic Registration Support Office",
+          "responsibilities": "Fictional registration error ZX-17 questions",
+          "contact_label": "Email synthetic registration support",
+          "contact_url": "mailto:registration-fixture@example.invalid",
+          "evidence_block_id": "31000000-0000-4000-8000-000000000006",
+          "scope": {
+            "topic": "synthetic_personal_registration",
+            "institution": "Purdue University Northwest"
+          },
+          "expected_eligible": true
+        }
+      ]
+    }
+  ],
+  "conflicts": [
+    {
+      "conflict_id": "51000000-0000-4000-8000-000000000001",
+      "topic_key": "synthetic_conflict",
+      "scope": {
+        "institution": "Purdue University Northwest"
+      },
+      "status": "unresolved",
+      "detected_at": "2030-01-16T12:30:00Z",
+      "resolved_at": null,
+      "supersession_evidence_ids": [],
+      "evidence_block_ids": [
+        "31000000-0000-4000-8000-000000000004",
+        "31000000-0000-4000-8000-000000000005"
+      ]
+    }
+  ]
+}

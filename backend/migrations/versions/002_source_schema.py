@@ -197,6 +197,41 @@ def upgrade() -> None:
     )
 
     op.create_table(
+        "source_links",
+        sa.Column("from_version_id", postgresql.UUID(as_uuid=True), nullable=False),
+        sa.Column("target_source_id", postgresql.UUID(as_uuid=True), nullable=False),
+        sa.Column("relation", sa.String(length=64), nullable=False),
+        sa.CheckConstraint(
+            "length(btrim(relation)) > 0",
+            name=op.f("ck_source_links_relation_not_blank"),
+        ),
+        sa.ForeignKeyConstraint(
+            ["from_version_id"],
+            ["source_versions.id"],
+            name="fk_source_links_from_version_id_source_versions",
+            ondelete="RESTRICT",
+        ),
+        sa.ForeignKeyConstraint(
+            ["target_source_id"],
+            ["sources.id"],
+            name="fk_source_links_target_source_id_sources",
+            ondelete="RESTRICT",
+        ),
+        sa.PrimaryKeyConstraint(
+            "from_version_id",
+            "target_source_id",
+            "relation",
+            name="pk_source_links",
+        ),
+    )
+    op.create_index(
+        "ix_source_links_target_source_id",
+        "source_links",
+        ["target_source_id"],
+        unique=False,
+    )
+
+    op.create_table(
         "applicability",
         sa.Column("version_id", postgresql.UUID(as_uuid=True), nullable=False),
         sa.Column("topic", sa.String(length=128), nullable=False),
@@ -656,6 +691,7 @@ def downgrade() -> None:
     op.drop_table("qualifications")
     op.drop_table("evidence_blocks")
     op.drop_table("applicability")
+    op.drop_table("source_links")
     op.drop_table("source_versions")
     op.drop_table("sources")
     op.drop_table("conflicts")

@@ -1,0 +1,67 @@
+{
+  "fixture_id": "us5-ingestion-authority-v1",
+  "synthetic": true,
+  "scenarios": {
+    "linked_documents": {
+      "root_url": "https://www.pnw.edu/__test__/ingestion/silver-compass/",
+      "expected_discovered_urls": [
+        "https://www.pnw.edu/__test__/ingestion/silver-compass/",
+        "https://www.pnw.edu/__test__/ingestion/silver-compass/details/",
+        "https://www.pnw.edu/__test__/ingestion/silver-compass/form.pdf"
+      ],
+      "expected_independent_qualifications": 3,
+      "expected_all_eligible": true
+    },
+    "pdf": {
+      "fixture_file": "linked-form.pdf",
+      "expected_media_type": "pdf",
+      "expected_complete": true,
+      "expected_pages": [1],
+      "text_contains": ["SC-310", "SILVER-COMPLETE"]
+    },
+    "malformed_table": {
+      "fixture_file": "malformed-table.html",
+      "expected_extraction_status": "incomplete",
+      "expected_source_status": "quarantined",
+      "expected_reason_codes": ["malformed_table"],
+      "expected_partial_evidence_published": false
+    },
+    "duplicate_fetch": {
+      "fixture_files": ["duplicate-policy.html", "duplicate-policy-repeat.html"],
+      "expected_same_sha256": true,
+      "expected_version_count": 1,
+      "expected_second_fetch_created": false
+    },
+    "campus_scope": {
+      "topic_key": "synthetic_campus_route",
+      "contexts": {
+        "Hammond": {"expected_marker": "H-17", "excluded_marker": "W-29"},
+        "Westville": {"expected_marker": "W-29", "excluded_marker": "H-17"}
+      },
+      "missing_context_requires_clarification": true
+    },
+    "prerequisite_groups": {
+      "fixture_file": "prerequisite-groups.html",
+      "expected_structured_type": "prerequisite_group",
+      "expected_expression": "(ING 11000 with C AND ING 12000 with B) OR ING 13000 with C",
+      "expected_corequisite": "ING 25001",
+      "expected_personal_eligibility_claim": false
+    },
+    "stale_source": {
+      "fixture_file": "stale-policy.html",
+      "observation_time": "2030-01-16T13:00:00Z",
+      "valid_until": "2030-01-15T12:00:00Z",
+      "expected_retrievable": false,
+      "expected_reason_code": "expired_source"
+    },
+    "unresolved_conflict": {
+      "topic_key": "synthetic_conflict",
+      "conflict_id": "55000000-0000-4000-8000-000000000001",
+      "disputed_markers": ["8:00 a.m.", "10:00 a.m."],
+      "expected_retrievable": false,
+      "expected_reason_code": "conflict",
+      "retrieval_rank_may_resolve": false
+    }
+  }
+}
+

@@ -1,0 +1,46 @@
+{
+  "sources": [
+    {
+      "url": "https://catalog.pnw.edu/__test__/us4/synthetic-data-science-ms/",
+      "title": "Synthetic Data Science MS Catalog Entry",
+      "topics": ["synthetic_program_catalog"],
+      "allowed_child_hosts": ["catalog.pnw.edu"]
+    },
+    {
+      "url": "https://catalog.pnw.edu/__test__/us4/graduate-admission/",
+      "title": "Synthetic Graduate Admission Guidance",
+      "topics": ["synthetic_graduate_admission"],
+      "allowed_child_hosts": ["catalog.pnw.edu"]
+    },
+    {
+      "url": "https://catalog.pnw.edu/__test__/us4/syn-35000/",
+      "title": "SYN 35000 Synthetic Analytics Prerequisites",
+      "topics": ["synthetic_course_prerequisites"],
+      "allowed_child_hosts": ["catalog.pnw.edu"]
+    },
+    {
+      "url": "https://www.pnw.edu/__test__/us4/plan-of-study/",
+      "title": "Synthetic Data Science MS Plan of Study",
+      "topics": ["synthetic_plan_of_study"],
+      "allowed_child_hosts": ["www.pnw.edu"]
+    },
+    {
+      "url": "https://www.pnw.edu/__test__/us4/graduation-application/",
+      "title": "Synthetic Data Science MS Graduation Application",
+      "topics": ["synthetic_graduation"],
+      "allowed_child_hosts": ["www.pnw.edu"]
+    },
+    {
+      "url": "https://catalog.pnw.edu/__test__/us4/incomplete-program-inventory/",
+      "title": "Incomplete Synthetic Program Inventory",
+      "topics": ["synthetic_program_catalog"],
+      "allowed_child_hosts": ["catalog.pnw.edu"]
+    },
+    {
+      "url": "https://catalog.pnw.edu/__test__/us4/syn-46000-typical-offering/",
+      "title": "SYN 46000 Typical Offering",
+      "topics": ["synthetic_current_availability"],
+      "allowed_child_hosts": ["catalog.pnw.edu", "www.pnw.edu"]
+    }
+  ]
+}

@@ -21,6 +21,7 @@ from app.models.sources import (
     EvidenceBlock,
     Qualification,
     Source,
+    SourceLink,
     SourceVersion,
 )
 
@@ -46,6 +47,7 @@ __all__ = [
     "Source",
     "SourceEvent",
     "SourceEventType",
+    "SourceLink",
     "SourceStatus",
     "SourceVersion",
     "conflict_evidence_blocks",
